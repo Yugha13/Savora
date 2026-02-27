@@ -307,26 +307,26 @@ fun CategoryBarChart(
     val chartBg = if (isDark) Color(0xFF22262E) else Color(0xFFF0F4FA)
     val inactiveBarColor = Color(0xFFC9E265) // Light Green
     val activeBarColor = Color(0xFFF26E50) // Orange
-    val dashLineColor = if (isDark) Color(0xFF555555) else Color(0xFFAAAAAA)
+    val dashLineColor = if (isDark) Color(0xFF444444) else Color(0xFFCCCCCC)
     val textColor = if (isDark) Color(0xFFAAAAAA) else Color(0xFF888888)
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(24.dp))
+            .clip(RoundedCornerShape(32.dp))
             .background(chartBg)
-            .padding(16.dp)
-            .height(280.dp) // Fixed height for chart
+            .padding(vertical = 24.dp, horizontal = 16.dp)
+            .height(240.dp) // Fixed height for chart
     ) {
         val maxAmount = categories.maxOfOrNull { it.amount.toFloat() } ?: 100f
-        val ySteps = 5
+        val ySteps = 4
         
         Row(modifier = Modifier.fillMaxSize()) {
             // Y-Axis Labels
             Column(
                 modifier = Modifier
                     .fillMaxHeight()
-                    .padding(end = 8.dp, bottom = 24.dp),
+                    .padding(end = 12.dp, bottom = 24.dp),
                 verticalArrangement = Arrangement.SpaceBetween,
                 horizontalAlignment = Alignment.End
             ) {
@@ -334,7 +334,7 @@ fun CategoryBarChart(
                 for (i in ySteps downTo 0) {
                     val stepVal = if (maxAmount == 0f) 0f else (maxAmount / ySteps) * i
                     Text(
-                        text = CurrencyFormatter.formatCurrency(BigDecimal(stepVal.toString()), currency).replace(".00", ""),
+                        text = if (stepVal == 0f) "" else "${stepVal.toInt()} kg", // Just using kg as dummy suffix as per img, or currency symbol
                         color = textColor,
                         style = MaterialTheme.typography.bodySmall,
                         fontSize = 11.sp
@@ -352,7 +352,7 @@ fun CategoryBarChart(
                     for (i in 0..ySteps) {
                         val y = chartHeight - (chartHeight / ySteps) * i
                         drawLine(
-                            color = dashLineColor.copy(alpha = 0.3f),
+                            color = dashLineColor,
                             start = Offset(0f, y),
                             end = Offset(chartWidth, y),
                             strokeWidth = 1.dp.toPx(),
@@ -360,12 +360,12 @@ fun CategoryBarChart(
                         )
                     }
 
-                    // Average Amount Dashed line
+                    // Average Amount Dashed line (Target / Threshold line)
                     val avgValue = averageAmount.toFloat()
                     if (avgValue in 0f..maxAmount) {
                         val avgY = chartHeight - (avgValue / maxAmount) * chartHeight
                         drawLine(
-                            color = dashLineColor,
+                            color = if (isDark) Color.White else Color.Black,
                             start = Offset(0f, avgY),
                             end = Offset(chartWidth, avgY),
                             strokeWidth = 1.5.dp.toPx(),
@@ -376,10 +376,9 @@ fun CategoryBarChart(
                     // Draw Bars
                     if (categories.isNotEmpty()) {
                         val barCount = categories.size
-                        val barSpacing = chartWidth / (barCount * 1.5f)
-                        val barWidth = barSpacing * 0.8f
-                        val totalOccupiedWidth = barCount * barSpacing
-                        val startOffsetX = (chartWidth - totalOccupiedWidth) / 2f
+                        val barSpacing = chartWidth / barCount
+                        val barWidth = barSpacing * 0.7f // Make bars thicker
+                        val startOffsetX = 0f
 
                         // Find the index of the highest category to select it
                         var selectedIdx = 0
@@ -390,7 +389,7 @@ fun CategoryBarChart(
 
                         categories.forEachIndexed { index, category ->
                             val isSelected = index == selectedIdx
-                            val barHeight = if (maxAmount == 0f) 0f else (category.amount.toFloat() / maxAmount) * chartHeight
+                            val barHeight = if (maxAmount == 0f) 0f else ((category.amount.toFloat() / maxAmount) * chartHeight).coerceAtLeast(10.dp.toPx()) // at least some height
                             
                             val xPos = startOffsetX + (index * barSpacing) + (barSpacing / 2f) - (barWidth / 2f)
                             val yPos = chartHeight - barHeight
@@ -403,21 +402,33 @@ fun CategoryBarChart(
                                 cornerRadius = CornerRadius(12.dp.toPx(), 12.dp.toPx())
                             )
 
-                            // Draw Circle for selected on the average line? Or max height?
-                            // Image shows a white dot on the selected bar at the dashed line level.
+                            // Target dot on the selected bar at the threshold line
                             if (isSelected) {
-                                val avgY = chartHeight - (avgValue / maxAmount) * chartHeight
+                                val targetY = if (avgValue in 0f..maxAmount) {
+                                    chartHeight - (avgValue / maxAmount) * chartHeight
+                                } else {
+                                    yPos
+                                }
+                                
+                                val centerX = xPos + barWidth / 2f
+                                
+                                // Outer orange circle
+                                drawCircle(
+                                    color = activeBarColor,
+                                    radius = barWidth * 0.35f,
+                                    center = Offset(centerX, targetY)
+                                )
+                                // Inner white circle
                                 drawCircle(
                                     color = Color.White,
                                     radius = barWidth * 0.2f,
-                                    center = Offset(xPos + barWidth/2f, if(avgValue > 0) avgY else yPos)
+                                    center = Offset(centerX, targetY)
                                 )
-                                // Stroke around circle
+                                // Very inner orange circle
                                 drawCircle(
                                     color = activeBarColor,
-                                    radius = barWidth * 0.2f,
-                                    center = Offset(xPos + barWidth/2f, if(avgValue > 0) avgY else yPos),
-                                    style = Stroke(width = 3.dp.toPx())
+                                    radius = barWidth * 0.08f,
+                                    center = Offset(centerX, targetY)
                                 )
                             }
                         }
@@ -428,9 +439,8 @@ fun CategoryBarChart(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .align(Alignment.BottomCenter)
-                        .padding(horizontal = 8.dp), // Adjust padding based on width
-                    horizontalArrangement = Arrangement.SpaceEvenly
+                        .align(Alignment.BottomCenter),
+                    horizontalArrangement = Arrangement.SpaceAround
                 ) {
                     categories.forEach { category ->
                         Text(
@@ -438,7 +448,6 @@ fun CategoryBarChart(
                             color = textColor,
                             style = MaterialTheme.typography.bodySmall,
                             fontSize = 12.sp,
-                            modifier = Modifier.weight(1f),
                             textAlign = TextAlign.Center
                         )
                     }
