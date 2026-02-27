@@ -92,17 +92,6 @@ fun AnalyticsScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(Spacing.md)
         ) {
-            // Header
-            item {
-                Text(
-                    text = "Overview",
-                    style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = textColor,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-            }
-
             // Period Selector (Pill style)
             item {
                 CustomPeriodSelector(
