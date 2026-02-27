@@ -2,6 +2,7 @@ package com.pennywiseai.tracker.ui.screens.analytics
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -75,17 +76,26 @@ fun CategoryPieChartCard(
                 // Dropdown for Filter in top right corner
                 var expanded by remember { mutableStateOf(false) }
                 Box {
-                    IconButton(
-                        onClick = { expanded = true },
+                    Row(
                         modifier = Modifier
-                            .clip(CircleShape)
+                            .clip(RoundedCornerShape(16.dp))
                             .background(iconBgColor)
-                            .size(36.dp)
+                            .clickable { expanded = true }
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
+                        Text(
+                            text = currentFilter.label,
+                            color = textColor,
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Medium
+                        )
                         Icon(
                             imageVector = Icons.Default.ArrowDropDown,
                             contentDescription = "Filter",
-                            tint = textColor
+                            tint = textColor,
+                            modifier = Modifier.size(20.dp)
                         )
                     }
                     
@@ -119,18 +129,35 @@ fun CategoryPieChartCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
+                val total = categories.sumOf { it.amount.toDouble() }.toFloat().coerceAtLeast(1f)
+                
+                // Consolidate beyond top 3 into "Remaining"
+                val displayCategories = if (categories.size > 4) {
+                    val top3 = categories.take(3)
+                    val remainingAmount = categories.drop(3).sumOf { it.amount }
+                    val remainingPercentage = if (total > 0) (remainingAmount.toFloat() / total) * 100f else 0f
+                    val remainingTransactions = categories.drop(3).sumOf { it.transactionCount }
+                    
+                    top3 + CategoryData(
+                        name = "Remaining", 
+                        amount = remainingAmount,
+                        percentage = remainingPercentage,
+                        transactionCount = remainingTransactions
+                    )
+                } else {
+                    categories
+                }
+
                 // Donut Chart
                 Box(
                     modifier = Modifier.size(130.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    val total = categories.sumOf { it.amount.toDouble() }.toFloat().coerceAtLeast(1f)
-                    
                     Canvas(modifier = Modifier.size(130.dp)) {
                         var startAngle = -90f
                         val strokeWidth = 16.dp.toPx()
                         
-                        if (categories.isEmpty()) {
+                        if (displayCategories.isEmpty()) {
                             drawArc(
                                 color = Color(0xFF333333),
                                 startAngle = startAngle,
@@ -139,29 +166,16 @@ fun CategoryPieChartCard(
                                 style = Stroke(width = strokeWidth, cap = StrokeCap.Butt)
                             )
                         } else {
-                            val top4 = categories.take(4)
-                            top4.forEachIndexed { index, cat ->
+                            displayCategories.forEachIndexed { index, cat ->
                                 val sweepAngle = (cat.amount.toFloat() / total) * 360f
                                 drawArc(
-                                    color = colorPalette[index % colorPalette.size],
+                                    color = if (cat.name == "Remaining") colorPalette.last() else colorPalette[index % colorPalette.size],
                                     startAngle = startAngle,
                                     sweepAngle = sweepAngle - 8f, // Add small gap
                                     useCenter = false,
                                     style = Stroke(width = strokeWidth, cap = StrokeCap.Butt)
                                 )
                                 startAngle += sweepAngle
-                            }
-                            
-                            val remaining = categories.drop(4).sumOf { it.amount.toDouble() }.toFloat()
-                            if (remaining > 0) {
-                                val sweepAngle = (remaining / total) * 360f
-                                drawArc(
-                                    color = colorPalette.last(),
-                                    startAngle = startAngle,
-                                    sweepAngle = sweepAngle - 8f,
-                                    useCenter = false,
-                                    style = Stroke(width = strokeWidth, cap = StrokeCap.Butt)
-                                )
                             }
                         }
                     }
@@ -186,26 +200,25 @@ fun CategoryPieChartCard(
                 
                 Spacer(modifier = Modifier.width(20.dp))
                 
-                // Legends (Top 4 Categories)
+                // Legends (Top Categories + Remaining)
                 Column(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    val top4 = categories.take(4)
-                    
                     // Display them in a 2-column format inside the column
-                    val chunked = top4.chunked(2)
+                    val chunked = displayCategories.chunked(2)
                     chunked.forEach { rowItems ->
                         Row(modifier = Modifier.fillMaxWidth()) {
                             rowItems.forEachIndexed { indexInRow, cat ->
-                                val globalIndex = top4.indexOf(cat)
+                                val globalIndex = displayCategories.indexOf(cat)
+                                val itemColor = if (cat.name == "Remaining") colorPalette.last() else colorPalette[globalIndex % colorPalette.size]
                                 Column(modifier = Modifier.weight(1f)) {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Box(
                                             modifier = Modifier
                                                 .size(8.dp)
                                                 .clip(CircleShape)
-                                                .background(colorPalette[globalIndex % colorPalette.size])
+                                                .background(itemColor)
                                         )
                                         Spacer(modifier = Modifier.width(6.dp))
                                         Text(
