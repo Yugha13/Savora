@@ -45,19 +45,5 @@ Savora is built using modern Android development tools and libraries:
 - **Hilt**
 - **MediaPipe on-device LLM**
 
-## 🤝 Contributing
-
-We welcome contributions from the community! From fixing bugs to adding support for new banks, your help is appreciated. 
-Please refer to our `CONTRIBUTING.md` (coming soon) and `CODE_OF_CONDUCT.md` for more details. 
-To run local checks:
-```bash
-./gradlew test
-./gradlew lint
-```
-
-## 🛡️ Privacy & Security
-
-We believe your finances are your business alone. Savora respects your privacy by processing everything locally. If you discover a security vulnerability, please refer to `SECURITY.md`.
-
 ---
 *Elevate your financial awareness with Savora.*
