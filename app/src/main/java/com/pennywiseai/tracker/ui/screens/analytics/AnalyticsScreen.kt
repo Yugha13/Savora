@@ -103,6 +103,21 @@ fun AnalyticsScreen(
                 )
             }
 
+            // Period Selector (Pill style)
+            item {
+                CustomPeriodSelector(
+                    periods = timePeriods,
+                    selectedPeriod = selectedPeriod,
+                    onPeriodSelected = { period ->
+                        if (period == TimePeriod.CUSTOM) {
+                            showDateRangePicker = true
+                        } else {
+                            viewModel.selectPeriod(period)
+                        }
+                    }
+                )
+            }
+
             // Analytics Summary Card (Dark styling)
             if (uiState.totalSpending > BigDecimal.ZERO || uiState.transactionCount > 0) {
                 item {
@@ -114,6 +129,18 @@ fun AnalyticsScreen(
                         topCategoryPercentage = uiState.topCategoryPercentage,
                         currency = uiState.currency,
                         isLoading = uiState.isLoading
+                    )
+                }
+            }
+
+            // Currency Selector (if multiple currencies available and not in unified mode)
+            if (availableCurrencies.size > 1 && !isUnifiedMode) {
+                item {
+                    CurrencyFilterRow(
+                        selectedCurrency = selectedCurrency,
+                        availableCurrencies = availableCurrencies,
+                        onCurrencySelected = { viewModel.selectCurrency(it) },
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
                     )
                 }
             }
@@ -137,33 +164,6 @@ fun AnalyticsScreen(
                         text = "${uiState.transactionCount} entries tracked",
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color.Gray
-                    )
-                }
-            }
-
-            // Period Selector (Pill style)
-            item {
-                CustomPeriodSelector(
-                    periods = timePeriods,
-                    selectedPeriod = selectedPeriod,
-                    onPeriodSelected = { period ->
-                        if (period == TimePeriod.CUSTOM) {
-                            showDateRangePicker = true
-                        } else {
-                            viewModel.selectPeriod(period)
-                        }
-                    }
-                )
-            }
-
-            // Currency Selector (if multiple currencies available and not in unified mode)
-            if (availableCurrencies.size > 1 && !isUnifiedMode) {
-                item {
-                    CurrencyFilterRow(
-                        selectedCurrency = selectedCurrency,
-                        availableCurrencies = availableCurrencies,
-                        onCurrencySelected = { viewModel.selectCurrency(it) },
-                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
                     )
                 }
             }

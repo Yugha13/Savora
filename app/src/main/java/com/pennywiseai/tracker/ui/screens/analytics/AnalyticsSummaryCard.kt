@@ -85,7 +85,7 @@ fun AnalyticsSummaryCard(
                 }
 
                 Text(
-                    text = "Goal Achieved!",
+                    text = "Overall Spending",
                     style = MaterialTheme.typography.titleLarge,
                     color = Color.White,
                     fontWeight = FontWeight.Bold
