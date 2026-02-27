@@ -38,10 +38,10 @@ fun CategoryPieChartCard(
     modifier: Modifier = Modifier
 ) {
     val isDark = isSystemInDarkTheme()
-    val cardBgColor = if (isDark) Color(0xFF1E1E1E) else Color(0xFFF5F5F5)
+    val cardBgColor = if (isDark) Color(0xFF1E1E1E) else Color(0xFFF9F9F9)
     val textColor = if (isDark) Color.White else Color.Black
-    val secondaryTextColor = if (isDark) Color(0xFFAAAAAA) else Color(0xFF888888)
-    val iconBgColor = if (isDark) Color(0xFF2A2A2A) else Color(0xFFE0E0E0)
+    val secondaryTextColor = if (isDark) Color(0xFFAAAAAA) else Color(0xFF666666)
+    val iconBgColor = if (isDark) Color(0xFF2A2A2A) else Color(0xFFEBEBEB)
     
     // Pie chart colors matching the image
     val colorPalette = listOf(

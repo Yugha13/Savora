@@ -38,8 +38,8 @@ fun AnalyticsSummaryCard(
     )
 
     val isDark = isSystemInDarkTheme()
-    val cardBgColor = if (isDark) Color(0xFF2A2A2A) else Color(0xFFF5F5F5)
-    val iconBgColor = if (isDark) Color(0xFF3A3A3A) else Color(0xFFE0E0E0)
+    val cardBgColor = if (isDark) Color(0xFF2A2A2A) else Color(0xFFF9F9F9)
+    val iconBgColor = if (isDark) Color(0xFF3A3A3A) else Color(0xFFEBEBEB)
     val iconTintColor = if (isDark) Color.White else Color.Black
     val titleTextColor = if (isDark) Color.White else Color.Black
     val innerBoxColor = if (isDark) Color(0xFFB5A1E5) else Color(0xFFD4C4FC)
