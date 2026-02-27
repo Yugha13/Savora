@@ -101,8 +101,8 @@ val ColorScheme.expense: Color
 @Composable
 fun PennyWiseTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    // Disabled dynamic color so standard Orange/Purple theme applies
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {

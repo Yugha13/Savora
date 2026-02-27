@@ -17,6 +17,13 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import com.pennywiseai.tracker.presentation.common.TransactionTypeFilter
 import com.pennywiseai.tracker.utils.CurrencyFormatter
 import java.math.BigDecimal
 
@@ -25,12 +32,15 @@ fun CategoryPieChartCard(
     totalAmount: BigDecimal,
     categories: List<CategoryData>,
     currency: String,
+    currentFilter: TransactionTypeFilter,
+    onFilterSelected: (TransactionTypeFilter) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val isDark = isSystemInDarkTheme()
-    val cardBgColor = if (isDark) Color(0xFF1E1E1E) else Color.White
+    val cardBgColor = if (isDark) Color(0xFF1E1E1E) else Color(0xFFF5F5F5)
     val textColor = if (isDark) Color.White else Color.Black
     val secondaryTextColor = if (isDark) Color(0xFFAAAAAA) else Color(0xFF888888)
+    val iconBgColor = if (isDark) Color(0xFF2A2A2A) else Color(0xFFE0E0E0)
     
     // Pie chart colors matching the image
     val colorPalette = listOf(
@@ -50,12 +60,56 @@ fun CategoryPieChartCard(
         Column(
             modifier = Modifier.fillMaxWidth().padding(24.dp)
         ) {
-            Text(
-                text = "Distribution",
-                style = MaterialTheme.typography.headlineSmall,
-                color = textColor,
-                fontWeight = FontWeight.Medium
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Distribution",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = textColor,
+                    fontWeight = FontWeight.Medium
+                )
+                
+                // Dropdown for Filter in top right corner
+                var expanded by remember { mutableStateOf(false) }
+                Box {
+                    IconButton(
+                        onClick = { expanded = true },
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .background(iconBgColor)
+                            .size(36.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowDropDown,
+                            contentDescription = "Filter",
+                            tint = textColor
+                        )
+                    }
+                    
+                    DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        TransactionTypeFilter.values().forEach { filter ->
+                            DropdownMenuItem(
+                                text = { 
+                                    Text(
+                                        filter.label, 
+                                        fontWeight = if (filter == currentFilter) FontWeight.Bold else FontWeight.Normal 
+                                    ) 
+                                },
+                                onClick = {
+                                    onFilterSelected(filter)
+                                    expanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+            }
             
             Spacer(modifier = Modifier.height(28.dp))
 

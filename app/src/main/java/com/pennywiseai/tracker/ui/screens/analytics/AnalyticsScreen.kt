@@ -114,8 +114,6 @@ fun AnalyticsScreen(
                         totalAmount = uiState.totalSpending,
                         transactionCount = uiState.transactionCount,
                         currency = uiState.currency,
-                        currentFilter = transactionTypeFilter,
-                        onFilterSelected = { viewModel.setTransactionTypeFilter(it) },
                         isLoading = uiState.isLoading
                     )
                 }
@@ -128,22 +126,9 @@ fun AnalyticsScreen(
                     CategoryPieChartCard(
                         totalAmount = uiState.totalSpending,
                         categories = uiState.categoryBreakdown,
-                        currency = uiState.currency
-                    )
-                }
-
-                // Add Spacing
-                item { Spacer(modifier = Modifier.height(16.dp)) }
-
-                // Restored Bar Chart with flat bars
-                item {
-                    val avgAmount = if (uiState.categoryBreakdown.isNotEmpty()) {
-                        uiState.totalSpending.divide(BigDecimal(uiState.categoryBreakdown.size), 2, java.math.RoundingMode.HALF_UP)
-                    } else BigDecimal.ZERO
-                    CategoryBarChart(
-                        categories = uiState.categoryBreakdown,
                         currency = uiState.currency,
-                        averageAmount = avgAmount
+                        currentFilter = transactionTypeFilter,
+                        onFilterSelected = { viewModel.setTransactionTypeFilter(it) }
                     )
                 }
             }
@@ -226,10 +211,10 @@ fun CustomPeriodSelector(
     onPeriodSelected: (TimePeriod) -> Unit
 ) {
     val isDark = isSystemInDarkTheme()
-    val containerBg = if (isDark) Color(0xFF1E1E1E) else Color(0xFFF5F6FA)
+    val containerBg = if (isDark) Color(0xFF1E1E1E) else Color(0xFFF5F5F5)
     val activeBg = Color(0xFFED7D5C) // Orange from image
     val activeText = Color.White
-    val inactiveText = if (isDark) Color(0xFFAAAAAA) else Color(0xFF888888)
+    val inactiveText = if (isDark) Color(0xFFAAAAAA) else Color(0xFF666666)
 
     Row(
         modifier = Modifier
@@ -304,11 +289,11 @@ fun CategoryGridItemCard(
     modifier: Modifier = Modifier
 ) {
     val isDark = isSystemInDarkTheme()
-    val bgColor = if (isDark) Color(0xFF1E1E1E) else Color.White
+    val bgColor = if (isDark) Color(0xFF1E1E1E) else Color(0xFFF9F9F9)
     val textColor = if (isDark) Color.White else Color.Black
-    val secondaryText = if (isDark) Color(0xFFAAAAAA) else Color(0xFF888888)
-    val iconBg = if (isDark) Color(0xFF2A2A2A) else Color(0xFFF5F6FA)
-    val pillBg = if (isDark) Color(0xFF2A2A2A) else Color(0xFFF0F0F0)
+    val secondaryText = if (isDark) Color(0xFFAAAAAA) else Color(0xFF666666)
+    val iconBg = if (isDark) Color(0xFF2A2A2A) else Color(0xFFEBEBEB)
+    val pillBg = if (isDark) Color(0xFF2A2A2A) else Color(0xFFE0E0E0)
     
     Card(
         onClick = onClick,
@@ -490,119 +475,6 @@ private fun CurrencyFilterRow(
                     selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             )
-        }
-    }
-}
-
-@Composable
-fun CategoryBarChart(
-    categories: List<CategoryData>,
-    currency: String,
-    averageAmount: BigDecimal
-) {
-    val isDark = isSystemInDarkTheme()
-    val chartBg = if (isDark) Color(0xFF1E1E1E) else Color(0xFFF5F6FA)
-    val inactiveBarColor = Color(0xFFC9E265) // Light Green
-    val activeBarColor = Color(0xFFF26E50) // Orange
-    val dashLineColor = if (isDark) Color(0xFF444444) else Color(0xFFCCCCCC)
-    val textColor = if (isDark) Color(0xFFAAAAAA) else Color(0xFF888888)
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(32.dp))
-            .background(chartBg)
-            .padding(vertical = 24.dp, horizontal = 16.dp)
-            .height(240.dp) // Fixed height for chart
-    ) {
-        val maxAmount = categories.maxOfOrNull { it.amount.toFloat() } ?: 100f
-        val ySteps = 4
-        
-        Row(modifier = Modifier.fillMaxSize()) {
-            // Y-Axis Labels
-            Column(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .padding(end = 12.dp, bottom = 24.dp),
-                verticalArrangement = Arrangement.SpaceBetween,
-                horizontalAlignment = Alignment.End
-            ) {
-                // Generate step labels
-                for (i in ySteps downTo 0) {
-                    val stepVal = if (maxAmount == 0f) 0f else (maxAmount / ySteps) * i
-                    Text(
-                        text = if (stepVal == 0f) "0" else CurrencyFormatter.formatCurrency(BigDecimal(stepVal.toDouble()), currency).replace(".00", ""),
-                        color = textColor,
-                        style = MaterialTheme.typography.bodySmall,
-                        fontSize = 11.sp
-                    )
-                }
-            }
-
-            // Chart Drawing Area
-            Box(modifier = Modifier.weight(1f).fillMaxHeight()) {
-                Canvas(modifier = Modifier.fillMaxSize()) {
-                    val chartWidth = size.width
-                    val chartHeight = size.height - 24.dp.toPx() // Leave room for X-axis
-                    
-                    // Draw horizontal dashed lines
-                    for (i in 0..ySteps) {
-                        val y = chartHeight - (chartHeight / ySteps) * i
-                        drawLine(
-                            color = dashLineColor,
-                            start = androidx.compose.ui.geometry.Offset(0f, y),
-                            end = androidx.compose.ui.geometry.Offset(chartWidth, y),
-                            strokeWidth = 1.dp.toPx(),
-                            pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
-                        )
-                    }
-
-                    // Draw Bars (Flat corners: CornerRadius.Zero)
-                    if (categories.isNotEmpty()) {
-                        val barSpacing = chartWidth / categories.size
-                        val barWidth = (barSpacing * 0.5f).coerceAtMost(32.dp.toPx()) // Max width
-                        
-                        categories.forEachIndexed { index, category ->
-                            val barHeight = if (maxAmount > 0) (category.amount.toFloat() / maxAmount) * chartHeight else 0f
-                            val x = (index * barSpacing) + (barSpacing / 2) - (barWidth / 2)
-                            val y = chartHeight - barHeight
-                            
-                            val isTopCategory = index == 0 // Highlight top category
-                            
-                            drawRoundRect(
-                                color = if (isTopCategory) activeBarColor else inactiveBarColor,
-                                topLeft = androidx.compose.ui.geometry.Offset(x, y),
-                                size = androidx.compose.ui.geometry.Size(barWidth, barHeight),
-                                cornerRadius = androidx.compose.ui.geometry.CornerRadius.Zero // Flat corners as requested
-                            )
-                        }
-                    }
-                }
-                
-                // X-Axis Labels (Bottom)
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.BottomCenter)
-                        .padding(top = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    // Show up to 6 labels to avoid crowding
-                    val displayCategories = categories.take(6)
-                    displayCategories.forEach { category ->
-                        Text(
-                            text = category.name.take(3), // Abbreviate
-                            color = textColor,
-                            style = MaterialTheme.typography.bodySmall,
-                            fontSize = 10.sp,
-                            modifier = Modifier.weight(1f),
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                }
-            }
         }
     }
 }

@@ -28,8 +28,6 @@ fun AnalyticsSummaryCard(
     totalAmount: BigDecimal,
     transactionCount: Int,
     currency: String,
-    currentFilter: TransactionTypeFilter,
-    onFilterSelected: (TransactionTypeFilter) -> Unit,
     isLoading: Boolean = false,
     modifier: Modifier = Modifier
 ) {
@@ -40,8 +38,10 @@ fun AnalyticsSummaryCard(
     )
 
     val isDark = isSystemInDarkTheme()
-    val cardBgColor = if (isDark) Color(0xFF2A2A2A) else Color(0xFF1E1E1E)
-    val iconBgColor = if (isDark) Color(0xFF3A3A3A) else Color(0xFF2E2E2E)
+    val cardBgColor = if (isDark) Color(0xFF2A2A2A) else Color(0xFFF5F5F5)
+    val iconBgColor = if (isDark) Color(0xFF3A3A3A) else Color(0xFFE0E0E0)
+    val iconTintColor = if (isDark) Color.White else Color.Black
+    val titleTextColor = if (isDark) Color.White else Color.Black
     val innerBoxColor = if (isDark) Color(0xFFB5A1E5) else Color(0xFFD4C4FC)
     val innerTextColor = Color(0xFF5D40A0)
     val innerLabelColor = Color(0xFF7A62B6)
@@ -78,7 +78,7 @@ fun AnalyticsSummaryCard(
                         Icon(
                             imageVector = Icons.Default.LocalFireDepartment,
                             contentDescription = "Trending",
-                            tint = Color.White,
+                            tint = iconTintColor,
                             modifier = Modifier.size(24.dp)
                         )
                     }
@@ -88,59 +88,9 @@ fun AnalyticsSummaryCard(
                     Text(
                         text = "Overall Spending",
                         style = MaterialTheme.typography.titleLarge,
-                        color = Color.White,
+                        color = titleTextColor,
                         fontWeight = FontWeight.Bold
                     )
-                }
-
-                // Dropdown for Filter in top right corner
-                var expanded by remember { mutableStateOf(false) }
-                Box {
-                    Surface(
-                        onClick = { expanded = true },
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(16.dp)),
-                        color = iconBgColor,
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
-                        ) {
-                            Text(
-                                text = currentFilter.label,
-                                style = MaterialTheme.typography.labelLarge,
-                                color = Color.White,
-                                fontWeight = FontWeight.Medium
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Icon(
-                                imageVector = Icons.Default.ArrowDropDown,
-                                contentDescription = "Filter",
-                                tint = Color.White,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
-                    }
-                    
-                    DropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false }
-                    ) {
-                        TransactionTypeFilter.values().forEach { filter ->
-                            DropdownMenuItem(
-                                text = { 
-                                    Text(
-                                        filter.label, 
-                                        fontWeight = if (filter == currentFilter) FontWeight.Bold else FontWeight.Normal 
-                                    ) 
-                                },
-                                onClick = {
-                                    onFilterSelected(filter)
-                                    expanded = false
-                                }
-                            )
-                        }
-                    }
                 }
             }
 
