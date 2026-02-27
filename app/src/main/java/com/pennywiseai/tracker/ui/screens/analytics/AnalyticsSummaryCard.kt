@@ -2,7 +2,6 @@ package com.pennywiseai.tracker.ui.screens.analytics
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
@@ -10,6 +9,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -17,11 +17,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.pennywiseai.tracker.presentation.common.TransactionTypeFilter
 import com.pennywiseai.tracker.utils.CurrencyFormatter
 import java.math.BigDecimal
@@ -29,7 +26,7 @@ import java.math.BigDecimal
 @Composable
 fun AnalyticsSummaryCard(
     totalAmount: BigDecimal,
-    categories: List<CategoryData>,
+    transactionCount: Int,
     currency: String,
     currentFilter: TransactionTypeFilter,
     onFilterSelected: (TransactionTypeFilter) -> Unit,
@@ -42,18 +39,13 @@ fun AnalyticsSummaryCard(
         label = "summary_alpha"
     )
 
-    val cardBgColor = Color(0xFF1E1E1E) // Dark styling as per image for both modes
-    val textColor = Color.White
-    val secondaryTextColor = Color(0xFFAAAAAA)
-    
-    // Pie chart colors matching the image
-    val colorPalette = listOf(
-        Color(0xFFC9E265), // Light Green
-        Color(0xFFF26E50), // Orange / Earned
-        Color(0xFF8C52FF), // Purple / Spent
-        Color(0xFFE5B05C), // Yellowish / Savings
-        Color(0xFF888888)  // Gray for Others
-    )
+    val isDark = isSystemInDarkTheme()
+    val cardBgColor = if (isDark) Color(0xFF2A2A2A) else Color(0xFF1E1E1E)
+    val iconBgColor = if (isDark) Color(0xFF3A3A3A) else Color(0xFF2E2E2E)
+    val innerBoxColor = if (isDark) Color(0xFFB5A1E5) else Color(0xFFD4C4FC)
+    val innerTextColor = Color(0xFF5D40A0)
+    val innerLabelColor = Color(0xFF7A62B6)
+    val mainTextColor = if (isDark) Color.White else Color.Black
 
     Box(
         modifier = modifier
@@ -61,39 +53,73 @@ fun AnalyticsSummaryCard(
             .alpha(alpha)
             .clip(RoundedCornerShape(32.dp))
             .background(cardBgColor)
-            .padding(24.dp)
+            .padding(16.dp)
     ) {
         Column(
             modifier = Modifier.fillMaxWidth()
         ) {
-            // Header Row
+            // Top Row
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "Analytics",
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = textColor,
-                    fontWeight = FontWeight.Medium
-                )
-                
+                // Fire Icon Box & Title
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(CircleShape)
+                            .background(iconBgColor),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.LocalFireDepartment,
+                            contentDescription = "Trending",
+                            tint = Color.White,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.width(16.dp))
+
+                    Text(
+                        text = "Overall Spending",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
                 // Dropdown for Filter in top right corner
                 var expanded by remember { mutableStateOf(false) }
                 Box {
-                    IconButton(
+                    Surface(
                         onClick = { expanded = true },
                         modifier = Modifier
-                            .clip(CircleShape)
-                            .background(Color(0xFF2A2A2A))
-                            .size(36.dp)
+                            .clip(RoundedCornerShape(16.dp)),
+                        color = iconBgColor,
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowDropDown,
-                            contentDescription = "Filter",
-                            tint = Color.White
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+                        ) {
+                            Text(
+                                text = currentFilter.label,
+                                style = MaterialTheme.typography.labelLarge,
+                                color = Color.White,
+                                fontWeight = FontWeight.Medium
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Icon(
+                                imageVector = Icons.Default.ArrowDropDown,
+                                contentDescription = "Filter",
+                                tint = Color.White,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
                     }
                     
                     DropdownMenu(
@@ -118,122 +144,62 @@ fun AnalyticsSummaryCard(
                 }
             }
 
-            Spacer(modifier = Modifier.height(28.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            // Pie Chart and Legend Row
+            // Inner Purple Box
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(24.dp))
+                    .background(innerBoxColor)
+                    .padding(vertical = 24.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                // Donut Chart
-                Box(
-                    modifier = Modifier.size(130.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    val total = categories.sumOf { it.amount.toDouble() }.toFloat().coerceAtLeast(1f)
-                    
-                    Canvas(modifier = Modifier.size(130.dp)) {
-                        var startAngle = -90f
-                        val strokeWidth = 16.dp.toPx()
-                        
-                        if (categories.isEmpty()) {
-                            drawArc(
-                                color = Color(0xFF333333),
-                                startAngle = startAngle,
-                                sweepAngle = 360f,
-                                useCenter = false,
-                                style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
-                            )
-                        } else {
-                            val top4 = categories.take(4)
-                            top4.forEachIndexed { index, cat ->
-                                val sweepAngle = (cat.amount.toFloat() / total) * 360f
-                                drawArc(
-                                    color = colorPalette[index % colorPalette.size],
-                                    startAngle = startAngle,
-                                    sweepAngle = sweepAngle - 8f, // Add small gap
-                                    useCenter = false,
-                                    style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
-                                )
-                                startAngle += sweepAngle
-                            }
-                            
-                            val remaining = categories.drop(4).sumOf { it.amount.toDouble() }.toFloat()
-                            if (remaining > 0) {
-                                val sweepAngle = (remaining / total) * 360f
-                                drawArc(
-                                    color = colorPalette.last(),
-                                    startAngle = startAngle,
-                                    sweepAngle = sweepAngle - 8f,
-                                    useCenter = false,
-                                    style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
-                                )
-                            }
-                        }
-                    }
-                    
-                    // Center Text inside Donut
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = "Total Balance",
-                            color = secondaryTextColor,
-                            style = MaterialTheme.typography.bodySmall,
-                            fontSize = 11.sp
-                        )
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = CurrencyFormatter.formatCurrency(totalAmount, currency),
-                            color = textColor,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
-                
-                Spacer(modifier = Modifier.width(20.dp))
-                
-                // Legends (Top 4 Categories)
+                // Left Column
                 Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.weight(1f)
                 ) {
-                    val top4 = categories.take(4)
-                    
-                    // Display them in a 2-column format inside the column
-                    val chunked = top4.chunked(2)
-                    chunked.forEach { rowItems ->
-                        Row(modifier = Modifier.fillMaxWidth()) {
-                            rowItems.forEachIndexed { indexInRow, cat ->
-                                val globalIndex = top4.indexOf(cat)
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Box(
-                                            modifier = Modifier
-                                                .size(8.dp)
-                                                .clip(CircleShape)
-                                                .background(colorPalette[globalIndex % colorPalette.size])
-                                        )
-                                        Spacer(modifier = Modifier.width(6.dp))
-                                        Text(
-                                            text = cat.name,
-                                            color = textColor,
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            fontWeight = FontWeight.Medium,
-                                            maxLines = 1
-                                        )
-                                    }
-                                    Spacer(modifier = Modifier.height(2.dp))
-                                    Text(
-                                        text = CurrencyFormatter.formatCurrency(cat.amount, currency).replace(".00", ""),
-                                        color = secondaryTextColor,
-                                        style = MaterialTheme.typography.labelMedium,
-                                        modifier = Modifier.padding(start = 14.dp)
-                                    )
-                                }
-                            }
-                        }
-                    }
+                    Text(
+                        text = "Total spent",
+                        color = innerLabelColor,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = CurrencyFormatter.formatCurrency(totalAmount, currency),
+                        color = innerTextColor,
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                // Vertical Divider
+                Box(
+                    modifier = Modifier
+                        .width(1.dp)
+                        .height(60.dp)
+                        .background(innerLabelColor.copy(alpha = 0.3f))
+                )
+
+                // Right Column
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = "Transactions",
+                        color = innerLabelColor,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "$transactionCount",
+                        color = innerTextColor,
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }

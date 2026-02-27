@@ -436,15 +436,7 @@ private fun PennyWiseTopAppBar(
                 }
             },
             actions = {
-                if (showDiscordButton) {
-                    IconButton(onClick = onDiscordClick) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_discord),
-                            contentDescription = "Join Discord Community",
-                            tint = Color(0xFF5865F2) // Discord brand color
-                        )
-                    }
-                }
+                // Settings Icon (unchanged but discord icon removed before it)
                 if (showSettingsButton) {
                     IconButton(onClick = onSettingsClick) {
                         Icon(
