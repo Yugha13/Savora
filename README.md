@@ -59,9 +59,5 @@ To run local checks:
 
 We believe your finances are your business alone. Savora respects your privacy by processing everything locally. If you discover a security vulnerability, please refer to `SECURITY.md`.
 
-## 📄 License
-
-Savora is open-source software licensed under the AGPL v3 License. See the `LICENSE` file for more details.
-
 ---
 *Elevate your financial awareness with Savora.*
