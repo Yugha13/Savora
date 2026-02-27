@@ -107,16 +107,15 @@ fun AnalyticsScreen(
                 )
             }
 
-            // Analytics Summary Card (Dark styling)
+            // Analytics Summary Card (Dark styling with Pie Chart)
             if (uiState.totalSpending > BigDecimal.ZERO || uiState.transactionCount > 0) {
                 item {
                     AnalyticsSummaryCard(
                         totalAmount = uiState.totalSpending,
-                        transactionCount = uiState.transactionCount,
-                        averageAmount = uiState.averageAmount,
-                        topCategory = uiState.topCategory,
-                        topCategoryPercentage = uiState.topCategoryPercentage,
+                        categories = uiState.categoryBreakdown,
                         currency = uiState.currency,
+                        currentFilter = transactionTypeFilter,
+                        onFilterSelected = { viewModel.setTransactionTypeFilter(it) },
                         isLoading = uiState.isLoading
                     )
                 }
@@ -134,71 +133,10 @@ fun AnalyticsScreen(
                 }
             }
 
-            // Spending Progress Header
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 16.dp, bottom = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Spending progress",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = textColor
-                    )
-                    Text(
-                        text = "${uiState.transactionCount} entries tracked",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.Gray
-                    )
-                }
-            }
-
-            // Bar Chart (Derived from Category Data)
+            // Category Breakdown Section (Grid format)
             if (uiState.categoryBreakdown.isNotEmpty()) {
                 item {
-                    CategoryBarChart(
-                        categories = uiState.categoryBreakdown.take(6), // up to 6 bars
-                        currency = selectedCurrency,
-                        averageAmount = uiState.averageAmount
-                    )
-                }
-            }
-            
-            // Collapsible Transaction Type Filter
-            item {
-                CollapsibleFilterRow(
-                    isExpanded = showAdvancedFilters,
-                    activeFilterCount = activeFilterCount,
-                    onToggle = { showAdvancedFilters = !showAdvancedFilters },
-                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
-                ) {
-                    LazyRow(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
-                    ) {
-                        items(TransactionTypeFilter.values().toList()) { typeFilter ->
-                            FilterChip(
-                                selected = transactionTypeFilter == typeFilter,
-                                onClick = { viewModel.setTransactionTypeFilter(typeFilter) },
-                                label = { Text(typeFilter.label) },
-                                colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                                    selectedLabelColor = MaterialTheme.colorScheme.onTertiaryContainer
-                                )
-                            )
-                        }
-                    }
-                }
-            }
-
-            // Category Breakdown Section (List format, existing but restyled)
-            if (uiState.categoryBreakdown.isNotEmpty()) {
-                item {
-                    CategoryBreakdownCard(
+                    CategoryGridCards(
                         categories = uiState.categoryBreakdown,
                         currency = selectedCurrency,
                         onCategoryClick = { category ->
@@ -207,6 +145,8 @@ fun AnalyticsScreen(
                     )
                 }
             }
+
+
 
             // Top Merchants Section
             if (uiState.topMerchants.isNotEmpty()) {
@@ -298,160 +238,107 @@ fun CustomPeriodSelector(
 }
 
 @Composable
-fun CategoryBarChart(
+fun CategoryGridCards(
     categories: List<CategoryData>,
     currency: String,
-    averageAmount: BigDecimal
+    onCategoryClick: (CategoryData) -> Unit
+) {
+    val chunkedCategories = categories.chunked(2)
+    Column(
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        chunkedCategories.forEach { rowItems ->
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                rowItems.forEach { category ->
+                    CategoryGridItemCard(
+                        category = category,
+                        currency = currency,
+                        onClick = { onCategoryClick(category) },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+                if (rowItems.size == 1) {
+                    Spacer(modifier = Modifier.weight(1f))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun CategoryGridItemCard(
+    category: CategoryData,
+    currency: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val isDark = isSystemInDarkTheme()
-    val chartBg = if (isDark) Color(0xFF22262E) else Color(0xFFF0F4FA)
-    val inactiveBarColor = Color(0xFFC9E265) // Light Green
-    val activeBarColor = Color(0xFFF26E50) // Orange
-    val dashLineColor = if (isDark) Color(0xFF444444) else Color(0xFFCCCCCC)
-    val textColor = if (isDark) Color(0xFFAAAAAA) else Color(0xFF888888)
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(32.dp))
-            .background(chartBg)
-            .padding(vertical = 24.dp, horizontal = 16.dp)
-            .height(240.dp) // Fixed height for chart
+    val bgColor = if (isDark) Color(0xFF1E1E1E) else Color.White
+    val textColor = if (isDark) Color.White else Color.Black
+    val secondaryText = if (isDark) Color(0xFFAAAAAA) else Color(0xFF888888)
+    val iconBg = if (isDark) Color(0xFF2A2A2A) else Color(0xFFF5F6FA)
+    val pillBg = if (isDark) Color(0xFF2A2A2A) else Color(0xFFF0F0F0)
+    
+    Card(
+        onClick = onClick,
+        modifier = modifier.height(150.dp),
+        colors = CardDefaults.cardColors(containerColor = bgColor),
+        shape = RoundedCornerShape(24.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = if (isDark) 0.dp else 4.dp)
     ) {
-        val maxAmount = categories.maxOfOrNull { it.amount.toFloat() } ?: 100f
-        val ySteps = 4
-        
-        Row(modifier = Modifier.fillMaxSize()) {
-            // Y-Axis Labels
-            Column(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .padding(end = 12.dp, bottom = 24.dp),
-                verticalArrangement = Arrangement.SpaceBetween,
-                horizontalAlignment = Alignment.End
+        Column(
+            modifier = Modifier.padding(16.dp).fillMaxSize(),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
             ) {
-                // Generate step labels
-                for (i in ySteps downTo 0) {
-                    val stepVal = if (maxAmount == 0f) 0f else (maxAmount / ySteps) * i
+                // Icon
+                Box(
+                    modifier = Modifier.size(40.dp).clip(CircleShape).background(iconBg),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = CategoryMapping.categories[category.name]?.icon ?: Icons.Default.Category,
+                        contentDescription = category.name,
+                        tint = textColor,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+                
+                // Pill
+                Box(
+                    modifier = Modifier.clip(RoundedCornerShape(16.dp)).background(pillBg).padding(horizontal = 8.dp, vertical = 4.dp),
+                    contentAlignment = Alignment.Center
+                ) {
                     Text(
-                        text = if (stepVal == 0f) "" else "${stepVal.toInt()} kg", // Just using kg as dummy suffix as per img, or currency symbol
-                        color = textColor,
-                        style = MaterialTheme.typography.bodySmall,
+                        text = "${category.transactionCount} Items",
+                        color = secondaryText,
+                        style = MaterialTheme.typography.labelSmall,
                         fontSize = 11.sp
                     )
                 }
             }
-
-            // Chart Drawing Area
-            Box(modifier = Modifier.weight(1f).fillMaxHeight()) {
-                Canvas(modifier = Modifier.fillMaxSize()) {
-                    val chartWidth = size.width
-                    val chartHeight = size.height - 24.dp.toPx() // Leave room for X-axis
-                    
-                    // Draw horizontal dashed lines
-                    for (i in 0..ySteps) {
-                        val y = chartHeight - (chartHeight / ySteps) * i
-                        drawLine(
-                            color = dashLineColor,
-                            start = Offset(0f, y),
-                            end = Offset(chartWidth, y),
-                            strokeWidth = 1.dp.toPx(),
-                            pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
-                        )
-                    }
-
-                    // Average Amount Dashed line (Target / Threshold line)
-                    val avgValue = averageAmount.toFloat()
-                    if (avgValue in 0f..maxAmount) {
-                        val avgY = chartHeight - (avgValue / maxAmount) * chartHeight
-                        drawLine(
-                            color = if (isDark) Color.White else Color.Black,
-                            start = Offset(0f, avgY),
-                            end = Offset(chartWidth, avgY),
-                            strokeWidth = 1.5.dp.toPx(),
-                            pathEffect = PathEffect.dashPathEffect(floatArrayOf(15f, 10f), 0f)
-                        )
-                    }
-
-                    // Draw Bars
-                    if (categories.isNotEmpty()) {
-                        val barCount = categories.size
-                        val barSpacing = chartWidth / barCount
-                        val barWidth = barSpacing * 0.7f // Make bars thicker
-                        val startOffsetX = 0f
-
-                        // Find the index of the highest category to select it
-                        var selectedIdx = 0
-                        var maxAmt = -1f
-                        categories.forEachIndexed { idx, cat -> 
-                            if(cat.amount.toFloat() > maxAmt) { maxAmt = cat.amount.toFloat(); selectedIdx = idx }
-                        }
-
-                        categories.forEachIndexed { index, category ->
-                            val isSelected = index == selectedIdx
-                            val barHeight = if (maxAmount == 0f) 0f else ((category.amount.toFloat() / maxAmount) * chartHeight).coerceAtLeast(10.dp.toPx()) // at least some height
-                            
-                            val xPos = startOffsetX + (index * barSpacing) + (barSpacing / 2f) - (barWidth / 2f)
-                            val yPos = chartHeight - barHeight
-
-                            // Draw Bar
-                            drawRoundRect(
-                                color = if (isSelected) activeBarColor else inactiveBarColor,
-                                topLeft = Offset(xPos, yPos),
-                                size = Size(barWidth, barHeight),
-                                cornerRadius = CornerRadius(12.dp.toPx(), 12.dp.toPx())
-                            )
-
-                            // Target dot on the selected bar at the threshold line
-                            if (isSelected) {
-                                val targetY = if (avgValue in 0f..maxAmount) {
-                                    chartHeight - (avgValue / maxAmount) * chartHeight
-                                } else {
-                                    yPos
-                                }
-                                
-                                val centerX = xPos + barWidth / 2f
-                                
-                                // Outer orange circle
-                                drawCircle(
-                                    color = activeBarColor,
-                                    radius = barWidth * 0.35f,
-                                    center = Offset(centerX, targetY)
-                                )
-                                // Inner white circle
-                                drawCircle(
-                                    color = Color.White,
-                                    radius = barWidth * 0.2f,
-                                    center = Offset(centerX, targetY)
-                                )
-                                // Very inner orange circle
-                                drawCircle(
-                                    color = activeBarColor,
-                                    radius = barWidth * 0.08f,
-                                    center = Offset(centerX, targetY)
-                                )
-                            }
-                        }
-                    }
-                }
-
-                // X-Axis Labels (Category names)
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.BottomCenter),
-                    horizontalArrangement = Arrangement.SpaceAround
-                ) {
-                    categories.forEach { category ->
-                        Text(
-                            text = category.name.take(3), // Abbreviate
-                            color = textColor,
-                            style = MaterialTheme.typography.bodySmall,
-                            fontSize = 12.sp,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                }
+            
+            Column {
+                Text(
+                    text = category.name,
+                    color = secondaryText,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = CurrencyFormatter.formatCurrency(category.amount, currency),
+                    color = textColor,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
     }
