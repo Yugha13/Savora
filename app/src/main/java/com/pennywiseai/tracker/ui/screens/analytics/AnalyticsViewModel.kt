@@ -159,17 +159,18 @@ class AnalyticsViewModel @Inject constructor(
                     allTransactionsWithSplits
                 }
 
+                val allTransactions = allTransactionsWithSplits.map { it.transaction }
                 val filteredTransactions = filteredTransactionsWithSplits.map { it.transaction }
                 val displayCurrency = _selectedCurrency.value
 
-                // Calculate total — convert if unified mode
-                var totalSpending = BigDecimal.ZERO
+                // Calculate UNFILTERED total — convert if unified mode
+                var unfilteredTotalSpending = BigDecimal.ZERO
                 if (isUnified) {
-                    for (tx in filteredTransactions) {
-                        totalSpending += currencyConversionService.convertAmount(tx.amount, tx.currency, displayCurrency)
+                    for (tx in allTransactions) {
+                        unfilteredTotalSpending += currencyConversionService.convertAmount(tx.amount, tx.currency, displayCurrency)
                     }
                 } else {
-                    totalSpending = filteredTransactions.sumOf { it.amount.toDouble() }.toBigDecimal()
+                    unfilteredTotalSpending = allTransactions.sumOf { it.amount.toDouble() }.toBigDecimal()
                 }
 
                 // Build category breakdown considering splits
@@ -194,8 +195,8 @@ class AnalyticsViewModel @Inject constructor(
                     CategoryData(
                         name = categoryName,
                         amount = categoryTotal,
-                        percentage = if (totalSpending > BigDecimal.ZERO) {
-                            (categoryTotal.divide(totalSpending, 4, java.math.RoundingMode.HALF_UP) * BigDecimal(100)).toFloat()
+                        percentage = if (unfilteredTotalSpending > BigDecimal.ZERO) {
+                            (categoryTotal.divide(unfilteredTotalSpending, 4, java.math.RoundingMode.HALF_UP) * BigDecimal(100)).toFloat()
                         } else 0f,
                         transactionCount = categoryTransactionCounts[categoryName] ?: 0
                     )
@@ -225,9 +226,9 @@ class AnalyticsViewModel @Inject constructor(
                     .sortedByDescending { it.amount }
                     .take(10)
 
-                // Calculate average amount
-                val averageAmount = if (filteredTransactions.isNotEmpty()) {
-                    totalSpending.divide(BigDecimal(filteredTransactions.size), 2, java.math.RoundingMode.HALF_UP)
+                // Calculate average amount using all transactions so it matches the unfiltered total spending
+                val averageAmount = if (allTransactions.isNotEmpty()) {
+                    unfilteredTotalSpending.divide(BigDecimal(allTransactions.size), 2, java.math.RoundingMode.HALF_UP)
                 } else {
                     BigDecimal.ZERO
                 }
@@ -236,10 +237,10 @@ class AnalyticsViewModel @Inject constructor(
                 val topCategory = categoryBreakdown.firstOrNull()
 
                 AnalyticsUiState(
-                    totalSpending = totalSpending,
+                    totalSpending = unfilteredTotalSpending,
                     categoryBreakdown = categoryBreakdown,
                     topMerchants = merchantBreakdown,
-                    transactionCount = filteredTransactions.size,
+                    transactionCount = allTransactions.size,
                     averageAmount = averageAmount,
                     topCategory = topCategory?.name,
                     topCategoryPercentage = topCategory?.percentage ?: 0f,
