@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -19,6 +20,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -31,17 +34,18 @@ fun PennyWiseBottomNavigation(
     val items = listOf(
         BottomNavItem.Home,
         BottomNavItem.Analytics,
-        BottomNavItem.Categories,
         BottomNavItem.Chat
     )
     
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route?.substringBefore("?")
     
-    val containerColor = Color(0xFF0F301B) // Dark Green
-    val selectedBgColor = Color(0xFFBCD542) // Light Yellowish Green
-    val selectedIconColor = Color(0xFF0F301B) // Dark Green
-    val unselectedIconColor = Color.White
+    val containerColor = MaterialTheme.colorScheme.surfaceVariant
+    val selectedBgColor = MaterialTheme.colorScheme.primary
+    val selectedIconColor = MaterialTheme.colorScheme.onPrimary
+    val unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant
+    
+    val haptic = LocalHapticFeedback.current
     
     Box(
         modifier = Modifier
@@ -54,39 +58,45 @@ fun PennyWiseBottomNavigation(
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(32.dp))
                 .background(containerColor)
-                .padding(horizontal = 12.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
+                .padding(horizontal = 8.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
             items.forEach { item ->
                 val isSelected = currentRoute == item.route
                 
                 Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(24.dp))
-                        .background(if (isSelected) selectedBgColor else Color.Transparent)
-                        .clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null,
-                            onClick = {
-                                if (!isSelected) {
-                                    navController.navigate(item.route) {
-                                        popUpTo(navController.graph.startDestinationId) { saveState = true }
-                                        launchSingleTop = true
-                                        restoreState = true
-                                    }
-                                }
-                            }
-                        )
-                        .padding(horizontal = if (isSelected) 32.dp else 16.dp, vertical = 12.dp),
+                    modifier = Modifier.weight(1f),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        imageVector = if (isSelected) item.selectedIcon else item.icon,
-                        contentDescription = item.title,
-                        tint = if (isSelected) selectedIconColor else unselectedIconColor,
-                        modifier = Modifier.size(24.dp)
-                    )
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(24.dp))
+                            .background(if (isSelected) selectedBgColor else Color.Transparent)
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null,
+                                onClick = {
+                                    if (!isSelected) {
+                                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                        navController.navigate(item.route) {
+                                            popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                            launchSingleTop = true
+                                            restoreState = true
+                                        }
+                                    }
+                                }
+                            )
+                            .padding(horizontal = 24.dp, vertical = 12.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = if (isSelected) item.selectedIcon else item.icon,
+                            contentDescription = item.title,
+                            tint = if (isSelected) selectedIconColor else unselectedIconColor,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
                 }
             }
         }

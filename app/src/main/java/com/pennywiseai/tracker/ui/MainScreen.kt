@@ -113,8 +113,8 @@ fun MainScreen(
                     "faq" -> "Help & FAQ"
                     else -> "PennyWise"
                 },
-                showBackButton = baseRoute in listOf("settings", "subscriptions", "transactions", "unrecognized_sms", "manage_accounts", "add_account", "faq"),
-                showSettingsButton = baseRoute !in listOf("settings", "categories", "unrecognized_sms", "manage_accounts", "add_account", "faq"),
+                showBackButton = baseRoute in listOf("chat", "settings", "subscriptions", "transactions", "categories", "unrecognized_sms", "manage_accounts", "add_account", "faq"),
+                showSettingsButton = baseRoute !in listOf("chat", "settings", "categories", "unrecognized_sms", "manage_accounts", "add_account", "faq"),
                 showDiscordButton = baseRoute !in listOf("settings", "categories", "unrecognized_sms", "manage_accounts", "add_account", "faq"), // Hide on these screens
                 onBackClick = { navController.popBackStack() },
                 onSettingsClick = { navController.navigate("settings") },
@@ -126,7 +126,7 @@ fun MainScreen(
         },
         bottomBar = {
             // Show bottom navigation only for main screens
-            if (baseRoute in listOf("home", "analytics", "categories", "chat")) {
+            if (baseRoute in listOf("home", "analytics")) {
                 PennyWiseBottomNavigation(navController = navController)
             }
         }
