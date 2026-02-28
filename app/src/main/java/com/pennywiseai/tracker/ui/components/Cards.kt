@@ -17,8 +17,17 @@ import androidx.compose.foundation.border
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Event
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
+import androidx.compose.material.icons.filled.OpenInFull
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.automirrored.filled.Message
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.offset
+import androidx.compose.ui.draw.clip
 
 /**
  * Base card component with consistent styling
@@ -104,7 +113,7 @@ fun SummaryCard(
 
 /**
  * Modern dashboard summary card based on custom layout
- * Features top-left icon, top-right action button, and bottom pill
+ * Features top-left icon, top-right action button inside a concave cutout, and bottom pill
  */
 @Composable
 fun DashboardSummaryCard(
@@ -118,121 +127,164 @@ fun DashboardSummaryCard(
     icon: @Composable () -> Unit,
     onClick: (() -> Unit)? = null
 ) {
-    Card(
+    val screenBg = MaterialTheme.colorScheme.background
+
+    Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(180.dp), // Fixed height to match ratio
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = containerColor),
-        onClick = { onClick?.invoke() }
+            .height(210.dp) // Taller to match the majestic feel
+            .clip(RoundedCornerShape(32.dp))
+            .clickable { onClick?.invoke() }
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            
-            // Top Right Custom Cutout Action Button
+        // Main Background with subtle gradient
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.linearGradient(
+                        colors = listOf(
+                            containerColor.copy(alpha = 0.9f),
+                            containerColor
+                        )
+                    )
+                )
+        )
+        
+        // Background color cutout effect (The concave curve trick)
+        // By placing a box of the same color as the screen background at the top right,
+        // it visually "cuts out" the rounded card corner.
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .offset(x = 36.dp, y = (-36).dp)
+                .size(100.dp)
+                .background(screenBg, CircleShape)
+        )
+        
+        // Top Right Custom Cutout Action Button (The floating orange button)
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .offset(x = (-8).dp, y = 8.dp) // Just inside the visual cutout
+                .size(48.dp)
+                .background(Color(0xFFE2895E), CircleShape), // Soft orange
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.OpenInFull, // Fits the expand/navigate action
+                contentDescription = "Details",
+                tint = Color.White,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+        
+        // Inner Content
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp), // Generous padding
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            // Top section (Icon)
             Box(
                 modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .offset(x = 8.dp, y = (-8).dp) // Shifted up and right
-                    .size(64.dp)
+                    .size(56.dp)
                     .background(Color.White, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(44.dp)
-                        .background(Color(0xFFED8F50), CircleShape), // Orange button color
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.ChevronRight,
-                        contentDescription = "Details",
-                        tint = Color.White,
-                        modifier = Modifier.size(20.dp)
+                icon()
+            }
+            
+            Spacer(modifier = Modifier.weight(1f))
+            
+            // Middle section (Title & Amount)
+            Column {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = titleColor,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    // Five stars like in the mockup, next to the "Rating / Amount"
+                    Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                        repeat(5) {
+                            Icon(
+                                imageVector = Icons.Default.Star,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(14.dp)
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Val: $amount", // Mimicking "Rating: 4.5" visually
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = amountColor.copy(alpha = 0.95f)
                     )
                 }
             }
             
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(20.dp), // Internal padding
-                verticalArrangement = Arrangement.SpaceBetween
+            Spacer(modifier = Modifier.height(20.dp))
+            
+            // Bottom section (Subtitle Pill & Action Icon)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                // Top section (Icon)
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .background(Color.White, CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    icon()
-                }
-                
-                // Middle section (Title & Amount)
-                Column {
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.SemiBold,
-                        color = titleColor
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = amount,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = amountColor.copy(alpha = 0.9f)
-                    )
-                }
-                
-                // Bottom section (Subtitle Pill & Action Icon)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // Left Subtitle Pill
-                    if (subtitle != null) {
-                        Row(
-                            modifier = Modifier
-                                .border(
-                                    width = 1.dp,
-                                    color = titleColor.copy(alpha = 0.3f),
-                                    shape = RoundedCornerShape(16.dp)
-                                )
-                                .padding(horizontal = 12.dp, vertical = 6.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Event,
-                                contentDescription = null,
-                                tint = titleColor.copy(alpha = 0.7f),
-                                modifier = Modifier.size(14.dp)
-                            )
-                            Text(
-                                text = subtitle,
-                                style = MaterialTheme.typography.labelMedium,
-                                color = titleColor
-                            )
-                        }
-                    } else {
-                        Spacer(modifier = Modifier.weight(1f))
-                    }
-                    
-                    // Right Action Icon (Comment/Chat bubble from mockup)
-                    Box(
+                // Left Subtitle Pill
+                if (subtitle != null) {
+                    Row(
                         modifier = Modifier
-                            .size(32.dp)
-                            .border(1.dp, titleColor.copy(alpha = 0.2f), CircleShape),
-                        contentAlignment = Alignment.Center
+                            .border(
+                                width = 1.dp,
+                                color = titleColor.copy(alpha = 0.3f),
+                                shape = RoundedCornerShape(20.dp)
+                            )
+                            .padding(horizontal = 14.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Icon(
-                            imageVector = Icons.Outlined.ChatBubbleOutline,
+                            imageVector = Icons.Default.CalendarToday,
                             contentDescription = null,
                             tint = titleColor.copy(alpha = 0.8f),
-                            modifier = Modifier.size(16.dp)
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Text(
+                            text = subtitle,
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Medium,
+                            color = titleColor,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.widthIn(max = 160.dp) // Prevent pill from squishing chat bubble
                         )
                     }
+                } else {
+                    Spacer(modifier = Modifier.weight(1f))
+                }
+                
+                // Right Action Icon (Chat bubble from mockup)
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .border(1.dp, titleColor.copy(alpha = 0.2f), CircleShape)
+                        .background(Color.White.copy(alpha = 0.1f), CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.Message,
+                        contentDescription = null,
+                        tint = titleColor.copy(alpha = 0.9f),
+                        modifier = Modifier.size(16.dp)
+                    )
                 }
             }
         }
