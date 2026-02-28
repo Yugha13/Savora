@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
@@ -25,6 +26,7 @@ import android.content.Intent
 import android.net.Uri
 import com.pennywiseai.tracker.R
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
@@ -123,12 +125,6 @@ fun MainScreen(
                     context.startActivity(intent)
                 }
             )
-        },
-        bottomBar = {
-            // Show bottom navigation only for main screens
-            if (baseRoute in listOf("home", "analytics")) {
-                PennyWiseBottomNavigation(navController = navController)
-            }
         }
     ) { paddingValues ->
         NavHost(
@@ -405,6 +401,18 @@ fun MainScreen(
             }
         )
     }
+    }
+    
+    // Floating Bottom Navigation
+    if (baseRoute in listOf("home", "analytics")) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .imePadding(),
+            contentAlignment = Alignment.BottomCenter
+        ) {
+            PennyWiseBottomNavigation(navController = navController)
+        }
     }
 }
 
