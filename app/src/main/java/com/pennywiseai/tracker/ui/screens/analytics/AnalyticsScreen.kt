@@ -169,7 +169,10 @@ fun AnalyticsScreen(
                             Text(
                                 text = "View All",
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.clickable {
+                                    onNavigateToTransactions(null, null, selectedPeriod.name, selectedCurrency)
+                                }
                             )
                         }
                     )
