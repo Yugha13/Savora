@@ -163,7 +163,16 @@ fun AnalyticsScreen(
             // Top Merchants Section
             if (uiState.topMerchants.isNotEmpty()) {
                 item {
-                    SectionHeader(title = "Top Merchants")
+                    SectionHeader(
+                        title = "Manage Expenses",
+                        action = {
+                            Text(
+                                text = "View All",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    )
                 }
                 item {
                     ExpandableList(
@@ -363,27 +372,65 @@ private fun MerchantListItem(
     currency: String,
     onClick: () -> Unit = {}
 ) {
-    val subtitle = buildString {
-        append("${merchant.transactionCount} ")
-        append(if (merchant.transactionCount == 1) "transaction" else "transactions")
-        if (merchant.isSubscription) {
-            append(" • Subscription")
-        }
-    }
-    
-    ListItemCard(
-        leadingContent = {
-            BrandIcon(
-                merchantName = merchant.name,
-                size = 40.dp,
-                showBackground = true
+    val isDark = isSystemInDarkTheme()
+    val textColor = if (isDark) Color.White else Color.Black
+    val secondaryText = if (isDark) Color(0xFFAAAAAA) else Color(0xFF888888)
+    val iconBg = if (isDark) Color(0xFF2A2A2A) else Color(0xFFF1F1F1)
+
+    // Example date mapping (since MerchantData doesn't have individual dates, use a placeholder that looks like the mockup for now, or you could pass it in later)
+    val dummyTimeDate = "10:00 am • 08 March, 2025"
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 12.dp, horizontal = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Leading Icon Background
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .clip(CircleShape)
+                .background(iconBg),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = CategoryMapping.categories[merchant.name]?.icon ?: Icons.Default.Category,
+                contentDescription = null,
+                tint = textColor,
+                modifier = Modifier.size(24.dp)
             )
-        },
-        title = merchant.name,
-        subtitle = subtitle,
-        amount = CurrencyFormatter.formatCurrency(merchant.amount, currency),
-        onClick = onClick
-    )
+        }
+
+        Spacer(modifier = Modifier.width(16.dp))
+
+        // Center Text Column
+        Column(
+            modifier = Modifier.weight(1f)
+        ) {
+            Text(
+                text = merchant.name,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium,
+                color = textColor
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = dummyTimeDate,
+                style = MaterialTheme.typography.bodySmall,
+                color = secondaryText
+            )
+        }
+
+        // Trailing Amount
+        Text(
+            text = CurrencyFormatter.formatCurrency(merchant.amount, currency),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = textColor
+        )
+    }
 }
 
 @Composable
