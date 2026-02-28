@@ -44,6 +44,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.SwapHoriz
+import androidx.compose.material.icons.filled.Wallet
 import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.automirrored.filled.TrendingDown
@@ -75,6 +76,7 @@ import com.pennywiseai.tracker.ui.theme.budget_warning_dark
 import com.pennywiseai.tracker.ui.theme.budget_danger_light
 import com.pennywiseai.tracker.ui.theme.budget_danger_dark
 import com.pennywiseai.tracker.ui.components.CreditCardsCard
+import com.pennywiseai.tracker.ui.components.DashboardSummaryCard
 import com.pennywiseai.tracker.ui.components.UnifiedAccountsCard
 import com.pennywiseai.tracker.ui.components.spotlightTarget
 import com.pennywiseai.tracker.utils.CurrencyFormatter
@@ -589,11 +591,27 @@ private fun MonthSummaryCard(
 
     val titleText = "Cash Flow ($currencySymbol) • $currentMonth 1-${now.dayOfMonth}"
     
-    SummaryCard(
+    // Background color: Custom Teal (from mockup)
+    // Dark mode gets a slightly darker version
+    val backgroundColor = if (!isSystemInDarkTheme()) {
+        Color(0xFF568C79) // Light Teal
+    } else {
+        Color(0xFF3A6B59) // Dark Teal
+    }
+    
+    DashboardSummaryCard(
         title = titleText,
         amount = displayAmount,
         subtitle = subtitle,
-        amountColor = amountColor,
+        containerColor = backgroundColor,
+        icon = {
+            Icon(
+                imageVector = Icons.Default.Wallet,
+                contentDescription = null,
+                tint = backgroundColor,
+                modifier = Modifier.size(24.dp)
+            )
+        },
         onClick = onShowBreakdown
     )
 }
@@ -1044,12 +1062,29 @@ private fun TransactionTypeCard(
             }
         }
     }
+    
+    // Default color palette fallback to native theme if `color` is too generic
+    // However, mapping `color` parameter back to background style.
+    val backgroundColor = when (title) {
+        "Credit Card" -> if (!isSystemInDarkTheme()) Color(0xFFE57373) else Color(0xFFC62828) // Redish
+        "Transfers" -> if (!isSystemInDarkTheme()) Color(0xFF64B5F6) else Color(0xFF1565C0) // Blueish
+        "Investments" -> if (!isSystemInDarkTheme()) Color(0xFF81C784) else Color(0xFF2E7D32) // Greenish
+        else -> color
+    }
 
-    SummaryCard(
+    DashboardSummaryCard(
         title = "$emoji $title • $currentMonth",
-        subtitle = subtitle,
         amount = CurrencyFormatter.formatCurrency(amount, currency),
-        amountColor = color,
+        subtitle = subtitle,
+        containerColor = backgroundColor,
+        icon = {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = backgroundColor,
+                modifier = Modifier.size(24.dp)
+            )
+        },
         onClick = onClick
     )
 }
