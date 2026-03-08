@@ -16,8 +16,8 @@ object SharedComponents {
             div(classes = "header-content") {
                 div(classes = "logo-section") {
                     a(href = "/") {
-                        img(src = "/static/logo.png", alt = "PennyWise AI", classes = "logo")
-                        span(classes = "logo-text") { +"PennyWise AI" }
+                        img(src = "/static/logo.png", alt = "Savora", classes = "logo")
+                        span(classes = "logo-text") { +"Savora" }
                     }
                 }
                 nav(classes = "nav-links") {

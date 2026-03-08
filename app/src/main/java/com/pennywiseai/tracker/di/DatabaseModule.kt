@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.pennywiseai.tracker.data.database.PennyWiseDatabase
+import com.pennywiseai.tracker.data.database.SavoraDatabase
 import com.pennywiseai.tracker.data.database.dao.AccountBalanceDao
 import com.pennywiseai.tracker.data.database.dao.BudgetDao
 import com.pennywiseai.tracker.data.database.dao.CategoryBudgetLimitDao
@@ -37,29 +37,29 @@ import javax.inject.Singleton
 object DatabaseModule {
     
     /**
-     * Provides the singleton instance of PennyWiseDatabase.
+     * Provides the singleton instance of SavoraDatabase.
      * 
      * @param context Application context
      * @return Configured Room database instance
      */
     @Provides
     @Singleton
-    fun providePennyWiseDatabase(
+    fun provideSavoraDatabase(
         @ApplicationContext context: Context
-    ): PennyWiseDatabase {
+    ): SavoraDatabase {
         val database = Room.databaseBuilder(
             context,
-            PennyWiseDatabase::class.java,
-            PennyWiseDatabase.DATABASE_NAME
+            SavoraDatabase::class.java,
+            SavoraDatabase.DATABASE_NAME
         )
             // Add manual migrations here when needed
             .addMigrations(
-                PennyWiseDatabase.MIGRATION_12_14,
-                PennyWiseDatabase.MIGRATION_13_14,
-                PennyWiseDatabase.MIGRATION_14_15,
-                PennyWiseDatabase.MIGRATION_20_21,
-                PennyWiseDatabase.MIGRATION_21_22,
-                PennyWiseDatabase.MIGRATION_22_23
+                SavoraDatabase.MIGRATION_12_14,
+                SavoraDatabase.MIGRATION_13_14,
+                SavoraDatabase.MIGRATION_14_15,
+                SavoraDatabase.MIGRATION_20_21,
+                SavoraDatabase.MIGRATION_21_22,
+                SavoraDatabase.MIGRATION_22_23
             )
 
             // Enable auto-migrations
@@ -71,7 +71,7 @@ object DatabaseModule {
             .build()
 
         // Set the singleton instance so BroadcastReceivers can access it
-        PennyWiseDatabase.setInstance(database)
+        SavoraDatabase.setInstance(database)
 
         return database
     }
@@ -79,162 +79,162 @@ object DatabaseModule {
     /**
      * Provides the TransactionDao from the database.
      * 
-     * @param database The PennyWiseDatabase instance
+     * @param database The SavoraDatabase instance
      * @return TransactionDao for accessing transaction data
      */
     @Provides
     @Singleton
-    fun provideTransactionDao(database: PennyWiseDatabase): TransactionDao {
+    fun provideTransactionDao(database: SavoraDatabase): TransactionDao {
         return database.transactionDao()
     }
     
     /**
      * Provides the SubscriptionDao from the database.
      * 
-     * @param database The PennyWiseDatabase instance
+     * @param database The SavoraDatabase instance
      * @return SubscriptionDao for accessing subscription data
      */
     @Provides
     @Singleton
-    fun provideSubscriptionDao(database: PennyWiseDatabase): SubscriptionDao {
+    fun provideSubscriptionDao(database: SavoraDatabase): SubscriptionDao {
         return database.subscriptionDao()
     }
     
     /**
      * Provides the ChatDao from the database.
      * 
-     * @param database The PennyWiseDatabase instance
+     * @param database The SavoraDatabase instance
      * @return ChatDao for accessing chat message data
      */
     @Provides
     @Singleton
-    fun provideChatDao(database: PennyWiseDatabase): ChatDao {
+    fun provideChatDao(database: SavoraDatabase): ChatDao {
         return database.chatDao()
     }
     
     /**
      * Provides the MerchantMappingDao from the database.
      * 
-     * @param database The PennyWiseDatabase instance
+     * @param database The SavoraDatabase instance
      * @return MerchantMappingDao for accessing merchant mapping data
      */
     @Provides
     @Singleton
-    fun provideMerchantMappingDao(database: PennyWiseDatabase): MerchantMappingDao {
+    fun provideMerchantMappingDao(database: SavoraDatabase): MerchantMappingDao {
         return database.merchantMappingDao()
     }
     
     /**
      * Provides the CategoryDao from the database.
      * 
-     * @param database The PennyWiseDatabase instance
+     * @param database The SavoraDatabase instance
      * @return CategoryDao for accessing category data
      */
     @Provides
     @Singleton
-    fun provideCategoryDao(database: PennyWiseDatabase): CategoryDao {
+    fun provideCategoryDao(database: SavoraDatabase): CategoryDao {
         return database.categoryDao()
     }
     
     /**
      * Provides the AccountBalanceDao from the database.
      * 
-     * @param database The PennyWiseDatabase instance
+     * @param database The SavoraDatabase instance
      * @return AccountBalanceDao for accessing account balance data
      */
     @Provides
     @Singleton
-    fun provideAccountBalanceDao(database: PennyWiseDatabase): AccountBalanceDao {
+    fun provideAccountBalanceDao(database: SavoraDatabase): AccountBalanceDao {
         return database.accountBalanceDao()
     }
     
     /**
      * Provides the UnrecognizedSmsDao from the database.
      * 
-     * @param database The PennyWiseDatabase instance
+     * @param database The SavoraDatabase instance
      * @return UnrecognizedSmsDao for accessing unrecognized SMS data
      */
     @Provides
     @Singleton
-    fun provideUnrecognizedSmsDao(database: PennyWiseDatabase): UnrecognizedSmsDao {
+    fun provideUnrecognizedSmsDao(database: SavoraDatabase): UnrecognizedSmsDao {
         return database.unrecognizedSmsDao()
     }
     
     /**
      * Provides the CardDao from the database.
      *
-     * @param database The PennyWiseDatabase instance
+     * @param database The SavoraDatabase instance
      * @return CardDao for accessing card data
      */
     @Provides
     @Singleton
-    fun provideCardDao(database: PennyWiseDatabase): CardDao {
+    fun provideCardDao(database: SavoraDatabase): CardDao {
         return database.cardDao()
     }
 
     /**
      * Provides the RuleDao from the database.
      *
-     * @param database The PennyWiseDatabase instance
+     * @param database The SavoraDatabase instance
      * @return RuleDao for accessing rule data
      */
     @Provides
     @Singleton
-    fun provideRuleDao(database: PennyWiseDatabase): RuleDao {
+    fun provideRuleDao(database: SavoraDatabase): RuleDao {
         return database.ruleDao()
     }
 
     /**
      * Provides the RuleApplicationDao from the database.
      *
-     * @param database The PennyWiseDatabase instance
+     * @param database The SavoraDatabase instance
      * @return RuleApplicationDao for accessing rule application data
      */
     @Provides
     @Singleton
-    fun provideRuleApplicationDao(database: PennyWiseDatabase): RuleApplicationDao {
+    fun provideRuleApplicationDao(database: SavoraDatabase): RuleApplicationDao {
         return database.ruleApplicationDao()
     }
 
     /**
      * Provides the ExchangeRateDao from the database.
      *
-     * @param database The PennyWiseDatabase instance
+     * @param database The SavoraDatabase instance
      * @return ExchangeRateDao for accessing exchange rate data
      */
     @Provides
     @Singleton
-    fun provideExchangeRateDao(database: PennyWiseDatabase): ExchangeRateDao {
+    fun provideExchangeRateDao(database: SavoraDatabase): ExchangeRateDao {
         return database.exchangeRateDao()
     }
 
     /**
      * Provides the BudgetDao from the database.
      *
-     * @param database The PennyWiseDatabase instance
+     * @param database The SavoraDatabase instance
      * @return BudgetDao for accessing budget data
      */
     @Provides
     @Singleton
-    fun provideBudgetDao(database: PennyWiseDatabase): BudgetDao {
+    fun provideBudgetDao(database: SavoraDatabase): BudgetDao {
         return database.budgetDao()
     }
 
     /**
      * Provides the TransactionSplitDao from the database.
      *
-     * @param database The PennyWiseDatabase instance
+     * @param database The SavoraDatabase instance
      * @return TransactionSplitDao for accessing transaction split data
      */
     @Provides
     @Singleton
-    fun provideTransactionSplitDao(database: PennyWiseDatabase): TransactionSplitDao {
+    fun provideTransactionSplitDao(database: SavoraDatabase): TransactionSplitDao {
         return database.transactionSplitDao()
     }
 
     @Provides
     @Singleton
-    fun provideCategoryBudgetLimitDao(database: PennyWiseDatabase): CategoryBudgetLimitDao {
+    fun provideCategoryBudgetLimitDao(database: SavoraDatabase): CategoryBudgetLimitDao {
         return database.categoryBudgetLimitDao()
     }
 }

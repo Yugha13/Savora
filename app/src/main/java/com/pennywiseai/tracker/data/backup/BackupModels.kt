@@ -5,11 +5,11 @@ import com.pennywiseai.tracker.data.database.entity.*
 import java.time.LocalDateTime
 
 /**
- * Root container for PennyWise backup data
+ * Root container for Savora backup data
  */
-data class PennyWiseBackup(
+data class SavoraBackup(
     @SerializedName("_format")
-    val format: String = "PennyWise Backup v1.0",
+    val format: String = "Savora Backup v1.0",
     
     @SerializedName("_warning")
     val warning: String = "Contains sensitive financial data. Keep this file secure.",

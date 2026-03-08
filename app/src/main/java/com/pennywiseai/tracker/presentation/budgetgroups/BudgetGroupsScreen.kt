@@ -26,8 +26,8 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.pennywiseai.tracker.data.database.entity.BudgetGroupType
 import com.pennywiseai.tracker.data.repository.BudgetGroupSpending
 import com.pennywiseai.tracker.data.repository.BudgetOverallSummary
-import com.pennywiseai.tracker.ui.components.PennyWiseCard
-import com.pennywiseai.tracker.ui.components.PennyWiseScaffold
+import com.pennywiseai.tracker.ui.components.SavoraCard
+import com.pennywiseai.tracker.ui.components.SavoraScaffold
 import com.pennywiseai.tracker.ui.theme.*
 import com.pennywiseai.tracker.utils.CurrencyFormatter
 import java.math.BigDecimal
@@ -44,7 +44,7 @@ fun BudgetGroupsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    PennyWiseScaffold(
+    SavoraScaffold(
         title = "Budget Groups",
         navigationIcon = {
             IconButton(onClick = onNavigateBack) {
@@ -68,7 +68,7 @@ fun BudgetGroupsScreen(
             ) {
                 CircularProgressIndicator()
             }
-            return@PennyWiseScaffold
+            return@SavoraScaffold
         }
 
         // Migration prompt
@@ -80,7 +80,7 @@ fun BudgetGroupsScreen(
                     viewModel.runSmartDefaults()
                 }
             )
-            return@PennyWiseScaffold
+            return@SavoraScaffold
         }
 
         if (!uiState.hasGroups) {
@@ -118,7 +118,7 @@ private fun MigrationPrompt(
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        PennyWiseCard(
+        SavoraCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(Dimensions.Padding.content)
@@ -178,7 +178,7 @@ private fun EmptyBudgetState(
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        PennyWiseCard(
+        SavoraCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(Dimensions.Padding.content)
@@ -378,7 +378,7 @@ private fun OverallSummaryCard(
         else -> if (isDark) budget_danger_dark else budget_danger_light
     }
 
-    PennyWiseCard(modifier = Modifier.fillMaxWidth()) {
+    SavoraCard(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()

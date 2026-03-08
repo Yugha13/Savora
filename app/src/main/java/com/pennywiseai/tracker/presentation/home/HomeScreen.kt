@@ -66,7 +66,7 @@ import com.pennywiseai.tracker.ui.theme.*
 import com.pennywiseai.tracker.ui.components.SummaryCard
 import com.pennywiseai.tracker.ui.components.ListItemCard
 import com.pennywiseai.tracker.ui.components.SectionHeader
-import com.pennywiseai.tracker.ui.components.PennyWiseCard
+import com.pennywiseai.tracker.ui.components.SavoraCard
 import com.pennywiseai.tracker.ui.components.AccountBalancesCard
 import com.pennywiseai.tracker.data.repository.BudgetOverallSummary
 import com.pennywiseai.tracker.ui.theme.budget_safe_light
@@ -289,7 +289,7 @@ fun HomeScreen(
                 }
             } else if (uiState.recentTransactions.isEmpty()) {
                 item {
-                    PennyWiseCard(
+                    SavoraCard(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Column(

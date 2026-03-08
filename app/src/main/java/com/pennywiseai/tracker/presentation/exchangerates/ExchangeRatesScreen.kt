@@ -17,7 +17,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.pennywiseai.tracker.data.database.entity.ExchangeRateEntity
-import com.pennywiseai.tracker.ui.components.PennyWiseScaffold
+import com.pennywiseai.tracker.ui.components.SavoraScaffold
 import com.pennywiseai.tracker.ui.theme.*
 import com.pennywiseai.tracker.utils.CurrencyFormatter
 import java.math.BigDecimal
@@ -33,7 +33,7 @@ fun ExchangeRatesScreen(
 
     var editingRate by remember { mutableStateOf<ExchangeRateEntity?>(null) }
 
-    PennyWiseScaffold(
+    SavoraScaffold(
         title = "Exchange Rates",
         navigationIcon = {
             IconButton(onClick = onNavigateBack) {

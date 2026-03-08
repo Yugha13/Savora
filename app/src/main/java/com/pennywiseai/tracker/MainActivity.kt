@@ -38,7 +38,7 @@ class MainActivity : FragmentActivity() {
         handleEditIntent(intent)
 
         setContent {
-            PennyWiseApp(
+            SavoraApp(
                 editTransactionId = editTransactionId,
                 openAddTransaction = openAddTransaction,
                 onEditComplete = { editTransactionId = null },

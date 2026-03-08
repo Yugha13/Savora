@@ -10,7 +10,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import com.pennywiseai.tracker.ui.components.PennyWiseScaffold
+import com.pennywiseai.tracker.ui.components.SavoraScaffold
 import com.pennywiseai.tracker.ui.theme.*
 import kotlinx.coroutines.launch
 
@@ -26,7 +26,7 @@ fun AddScreen(
     
     val tabs = listOf("Transaction", "Subscription")
     
-    PennyWiseScaffold(
+    SavoraScaffold(
         title = "Add New",
         navigationIcon = {
             IconButton(onClick = onNavigateBack) {

@@ -1,6 +1,6 @@
-# PennyWise Web - SMS Parser Tool
+# Savora Web - SMS Parser Tool
 
-A web-based tool for testing and reporting SMS parsing issues for the PennyWise AI app.
+A web-based tool for testing and reporting SMS parsing issues for the Savora app.
 
 ## Features
 
@@ -71,7 +71,7 @@ docker run -p 8080:8080 -e DATABASE_PASSWORD=your_password pennywise-web
 1. Create a service file at `/etc/systemd/system/pennywise-web.service`:
    ```ini
    [Unit]
-   Description=PennyWise Web SMS Parser
+   Description=Savora Web SMS Parser
    After=network.target
 
    [Service]

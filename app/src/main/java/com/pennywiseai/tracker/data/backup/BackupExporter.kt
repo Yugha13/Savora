@@ -4,7 +4,7 @@ import android.content.Context
 import android.os.Build
 import com.google.gson.GsonBuilder
 import com.pennywiseai.tracker.BuildConfig
-import com.pennywiseai.tracker.data.database.PennyWiseDatabase
+import com.pennywiseai.tracker.data.database.SavoraDatabase
 import com.pennywiseai.tracker.data.preferences.UserPreferencesRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
@@ -19,7 +19,7 @@ import javax.inject.Singleton
 @Singleton
 class BackupExporter @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val database: PennyWiseDatabase,
+    private val database: SavoraDatabase,
     private val userPreferencesRepository: UserPreferencesRepository
 ) {
     
@@ -56,7 +56,7 @@ class BackupExporter @Inject constructor(
     /**
      * Create backup data structure
      */
-    private suspend fun createBackup(privacy: ExportPrivacy): PennyWiseBackup {
+    private suspend fun createBackup(privacy: ExportPrivacy): SavoraBackup {
         // Get all database data
         val transactions = database.transactionDao().getAllTransactions().first()
         val categories = database.categoryDao().getAllCategories().first()
@@ -100,7 +100,7 @@ class BackupExporter @Inject constructor(
             )}
         }
         
-        return PennyWiseBackup(
+        return SavoraBackup(
             metadata = BackupMetadata(
                 exportId = UUID.randomUUID().toString(),
                 appVersion = BuildConfig.VERSION_NAME,
@@ -162,7 +162,7 @@ class BackupExporter @Inject constructor(
         val timestamp = LocalDateTime.now().format(
             DateTimeFormatter.ofPattern("yyyy_MM_dd_HHmmss")
         )
-        val fileName = "PennyWise_Backup_$timestamp.pennywisebackup"
+        val fileName = "Savora_Backup_$timestamp.pennywisebackup"
         
         return File(exportDir, fileName)
     }

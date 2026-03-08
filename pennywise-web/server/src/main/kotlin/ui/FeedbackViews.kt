@@ -10,7 +10,7 @@ object FeedbackViews {
     suspend fun ApplicationCall.respondFeedbackPage() {
         respondHtml(HttpStatusCode.OK) {
             head {
-                SharedComponents.apply { commonHead("PennyWise AI - Feedback") }
+                SharedComponents.apply { commonHead("Savora - Feedback") }
                 style {
                     unsafe {
                         +SharedComponents.commonStyles
@@ -23,7 +23,7 @@ object FeedbackViews {
 
                 div(classes = "container") {
                     h1 { +"Submit Feedback" }
-                    p(classes = "muted") { +"Report bugs or suggest new features to help improve PennyWise." }
+                    p(classes = "muted") { +"Report bugs or suggest new features to help improve Savora." }
 
                     div(classes = "feedback-layout") {
                         div(classes = "form-section") {

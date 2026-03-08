@@ -43,7 +43,7 @@ fun AccountDetailScreen(
     val uiState by viewModel.uiState.collectAsState()
     val selectedDateRange by viewModel.selectedDateRange.collectAsState()
     
-    PennyWiseScaffold(
+    SavoraScaffold(
         title = "${uiState.bankName} ••${uiState.accountLast4}",
         navigationIcon = {
             IconButton(onClick = { navController.navigateUp() }) {
@@ -154,7 +154,7 @@ private fun ExpandableBalanceChart(
 ) {
     var isExpanded by remember { mutableStateOf(false) }
     
-    PennyWiseCard(
+    SavoraCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { isExpanded = !isExpanded }
@@ -232,7 +232,7 @@ private fun CurrentBalanceCard(
 ) {
     val isCreditCard = creditLimit != null
     
-    PennyWiseCard(
+    SavoraCard(
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(
@@ -310,7 +310,7 @@ private fun SummaryStatistics(
     primaryCurrency: String,
     hasMultipleCurrencies: Boolean = false
 ) {
-    PennyWiseCard(
+    SavoraCard(
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(
@@ -541,7 +541,7 @@ private fun TransactionItem(
 
 @Composable
 private fun EmptyTransactionsState() {
-    PennyWiseCard(
+    SavoraCard(
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(

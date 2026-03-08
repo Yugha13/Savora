@@ -4,7 +4,7 @@
     <style name="Theme.Pennywisecompose" parent="android:Theme.Material.NoActionBar" />
     
     <!-- Splash Screen theme for dark mode -->
-    <style name="Theme.PennyWise.SplashScreen" parent="Theme.SplashScreen">
+    <style name="Theme.Savora.SplashScreen" parent="Theme.SplashScreen">
         <!-- Dark background color matching Material Design 3 dark theme -->
         <item name="windowSplashScreenBackground">#000000</item>
         

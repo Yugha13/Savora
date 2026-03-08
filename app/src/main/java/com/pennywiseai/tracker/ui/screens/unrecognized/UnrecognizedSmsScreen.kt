@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pennywiseai.tracker.data.database.entity.UnrecognizedSmsEntity
-import com.pennywiseai.tracker.ui.components.PennyWiseCard
+import com.pennywiseai.tracker.ui.components.SavoraCard
 import com.pennywiseai.tracker.ui.theme.Dimensions
 import com.pennywiseai.tracker.ui.theme.Spacing
 import java.time.format.DateTimeFormatter
@@ -43,7 +43,7 @@ fun UnrecognizedSmsScreen(
         verticalArrangement = Arrangement.spacedBy(Spacing.md)
     ) {
         // Header card with info
-        PennyWiseCard(
+        SavoraCard(
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(
@@ -68,7 +68,7 @@ fun UnrecognizedSmsScreen(
                 
                 Text(
                     text = "These messages from potential banks couldn't be automatically parsed. " +
-                          "Help improve PennyWise by reporting them so we can add support for more banks.",
+                          "Help improve Savora by reporting them so we can add support for more banks.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -214,7 +214,7 @@ private fun UnrecognizedSmsItem(
     onDelete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    PennyWiseCard(
+    SavoraCard(
         modifier = modifier.fillMaxWidth()
     ) {
         Column(

@@ -40,8 +40,8 @@ import com.pennywiseai.tracker.data.database.entity.TransactionType
 import java.math.BigDecimal
 import com.pennywiseai.tracker.ui.components.BrandIcon
 import com.pennywiseai.tracker.ui.components.CategoryChip
-import com.pennywiseai.tracker.ui.components.PennyWiseCard
-import com.pennywiseai.tracker.ui.components.PennyWiseScaffold
+import com.pennywiseai.tracker.ui.components.SavoraCard
+import com.pennywiseai.tracker.ui.components.SavoraScaffold
 import com.pennywiseai.tracker.ui.components.SplitBreakdownCard
 import com.pennywiseai.tracker.ui.components.SplitEditor
 import com.pennywiseai.tracker.ui.components.SplitItem
@@ -333,7 +333,7 @@ private fun TransactionHeader(
     primaryCurrency: String,
     convertedAmount: BigDecimal?
 ) {
-    PennyWiseCard(
+    SavoraCard(
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(
@@ -406,7 +406,7 @@ private fun TransactionHeader(
 
 @Composable
 private fun SmsBodyCard(smsBody: String) {
-    PennyWiseCard(
+    SavoraCard(
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(
@@ -458,7 +458,7 @@ private fun ExtractedInfoCard(
     hasSplits: Boolean,
     currency: String
 ) {
-    PennyWiseCard(
+    SavoraCard(
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(
@@ -555,7 +555,7 @@ private fun ExtractedInfoCard(
 
 @Composable
 private fun AdditionalDetailsCard(viewModel: TransactionDetailViewModel, transaction: TransactionEntity) {
-    PennyWiseCard(
+    SavoraCard(
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(
@@ -672,7 +672,7 @@ private fun EditableTransactionHeader(
     transaction: TransactionEntity,
     viewModel: TransactionDetailViewModel
 ) {
-    PennyWiseCard(
+    SavoraCard(
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(
@@ -818,7 +818,7 @@ private fun EditableExtractedInfoCard(
 ) {
     val categories by viewModel.categories.collectAsStateWithLifecycle(initialValue = emptyList())
 
-    PennyWiseCard(
+    SavoraCard(
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(

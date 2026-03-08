@@ -1,6 +1,6 @@
 # Planned Features
 
-Features to make PennyWise a complete budget tracking replacement for spreadsheets.
+Features to make Savora a complete budget tracking replacement for spreadsheets.
 
 ## Already Implemented
 - Transaction parsing from SMS (46+ banks)

@@ -19,7 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.pennywiseai.tracker.ui.components.PennyWiseCard
+import com.pennywiseai.tracker.ui.components.SavoraCard
 import com.pennywiseai.tracker.ui.components.SectionHeader
 import com.pennywiseai.tracker.ui.theme.Dimensions
 import com.pennywiseai.tracker.ui.theme.Spacing
@@ -150,7 +150,7 @@ fun FAQScreen(
             faqCategories.forEachIndexed { categoryIndex, category ->
                 SectionHeader(title = category.title)
                 
-                PennyWiseCard(
+                SavoraCard(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column {
@@ -237,7 +237,7 @@ fun FAQScreen(
             // Still need help section
             SectionHeader(title = "Still Need Help?")
             
-            PennyWiseCard(
+            SavoraCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable {

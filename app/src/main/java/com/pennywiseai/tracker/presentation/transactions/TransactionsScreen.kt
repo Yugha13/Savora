@@ -828,7 +828,7 @@ private fun EmptyTransactionsState(
             .padding(Dimensions.Padding.content),
         contentAlignment = Alignment.Center
     ) {
-        PennyWiseCard(
+        SavoraCard(
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(

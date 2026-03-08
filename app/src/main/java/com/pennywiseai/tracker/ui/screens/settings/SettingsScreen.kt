@@ -29,8 +29,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pennywiseai.tracker.core.Constants
-import com.pennywiseai.tracker.ui.components.PennyWiseCard
-import com.pennywiseai.tracker.ui.components.PennyWiseScaffold
+import com.pennywiseai.tracker.ui.components.SavoraCard
+import com.pennywiseai.tracker.ui.components.SavoraScaffold
 import com.pennywiseai.tracker.ui.components.SectionHeader
 import com.pennywiseai.tracker.ui.theme.Dimensions
 import com.pennywiseai.tracker.ui.theme.Spacing
@@ -110,7 +110,7 @@ fun SettingsScreen(
             // Theme Settings Section
             SectionHeader(title = "Appearance")
         
-        PennyWiseCard(
+        SavoraCard(
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(
@@ -156,7 +156,7 @@ fun SettingsScreen(
        /* // General Settings Section
         SectionHeader(title = "General")
 
-        PennyWiseCard(
+        SavoraCard(
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(
@@ -232,7 +232,7 @@ fun SettingsScreen(
         // Currency Section
         SectionHeader(title = "Currency")
 
-        PennyWiseCard(
+        SavoraCard(
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(
@@ -443,7 +443,7 @@ fun SettingsScreen(
         // Security Section
         SectionHeader(title = "Security")
 
-        PennyWiseCard(
+        SavoraCard(
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(
@@ -528,7 +528,7 @@ fun SettingsScreen(
         SectionHeader(title = "Data Management")
         
         // Manage Accounts
-        PennyWiseCard(
+        SavoraCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable { onNavigateToManageAccounts() }
@@ -572,7 +572,7 @@ fun SettingsScreen(
         }
         
         // Categories
-        PennyWiseCard(
+        SavoraCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable { onNavigateToCategories() }
@@ -616,7 +616,7 @@ fun SettingsScreen(
         }
 
         // Smart Rules
-        PennyWiseCard(
+        SavoraCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable { onNavigateToRules() }
@@ -660,7 +660,7 @@ fun SettingsScreen(
         }
 
         // Budgets
-        PennyWiseCard(
+        SavoraCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable { onNavigateToBudgets() }
@@ -704,7 +704,7 @@ fun SettingsScreen(
         }
 
         // Export Data
-        PennyWiseCard(
+        SavoraCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable { settingsViewModel.exportBackup() }
@@ -748,7 +748,7 @@ fun SettingsScreen(
         }
         
         // Import Data
-        PennyWiseCard(
+        SavoraCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable { 
@@ -794,7 +794,7 @@ fun SettingsScreen(
         }
         
         // SMS Scan Period
-        PennyWiseCard(
+        SavoraCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable { showSmsScanDialog = true }
@@ -840,7 +840,7 @@ fun SettingsScreen(
         // AI Features Section
         SectionHeader(title = "AI Features")
         
-        PennyWiseCard(
+        SavoraCard(
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(
@@ -999,9 +999,9 @@ fun SettingsScreen(
         val unreportedCount by settingsViewModel.unreportedSmsCount.collectAsStateWithLifecycle()
         
         if (unreportedCount > 0) {
-            SectionHeader(title = "Help Improve PennyWise")
+            SectionHeader(title = "Help Improve Savora")
             
-            PennyWiseCard(
+            SavoraCard(
                 modifier = Modifier.fillMaxWidth(),
                 onClick = { 
                     Log.d("SettingsScreen", "Navigating to UnrecognizedSms screen")
@@ -1051,7 +1051,7 @@ fun SettingsScreen(
         // Developer Section
         SectionHeader(title = "Developer")
         
-        PennyWiseCard(
+        SavoraCard(
             modifier = Modifier.fillMaxWidth()
         ) {
             Row(
@@ -1085,7 +1085,7 @@ fun SettingsScreen(
 
         val context = LocalContext.current
 
-        PennyWiseCard(
+        SavoraCard(
             modifier = Modifier.fillMaxWidth()
         ) {
             Column {
@@ -1156,7 +1156,7 @@ fun SettingsScreen(
         // App Version
         Spacer(modifier = Modifier.height(Spacing.md))
         Text(
-            text = "PennyWise v${com.pennywiseai.tracker.BuildConfig.VERSION_NAME}",
+            text = "Savora v${com.pennywiseai.tracker.BuildConfig.VERSION_NAME}",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.fillMaxWidth(),
@@ -1265,7 +1265,7 @@ fun SettingsScreen(
         val timestamp = java.time.LocalDateTime.now().format(
             java.time.format.DateTimeFormatter.ofPattern("yyyy_MM_dd_HHmmss")
         )
-        val fileName = "PennyWise_Backup_$timestamp.pennywisebackup"
+        val fileName = "Savora_Backup_$timestamp.pennywisebackup"
         
         AlertDialog(
             onDismissRequest = { 

@@ -33,7 +33,7 @@ import androidx.compose.ui.draw.clip
  * Base card component with consistent styling
  */
 @Composable
-fun PennyWiseCard(
+fun SavoraCard(
     modifier: Modifier = Modifier,
     containerColor: CardColors = CardDefaults.cardColors(
         containerColor = MaterialTheme.colorScheme.surface
@@ -75,7 +75,7 @@ fun SummaryCard(
     amountColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.onPrimaryContainer,
     onClick: (() -> Unit)? = null
 ) {
-    PennyWiseCard(
+    SavoraCard(
         modifier = modifier.fillMaxWidth(),
         containerColor = containerColor,
         onClick = onClick
@@ -305,7 +305,7 @@ fun ListItemCard(
     trailingContent: @Composable (() -> Unit)? = null,
     onClick: (() -> Unit)? = null
 ) {
-    PennyWiseCard(
+    SavoraCard(
         modifier = modifier.fillMaxWidth(),
         onClick = onClick
     ) {

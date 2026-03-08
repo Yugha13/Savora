@@ -40,7 +40,7 @@ import com.pennywiseai.tracker.data.database.entity.TransactionSplitEntity
 import com.pennywiseai.tracker.data.database.entity.UnrecognizedSmsEntity
 
 /**
- * The PennyWise Room database.
+ * The Savora Room database.
  * 
  * This database stores all financial transaction data locally on the device.
  * 
@@ -86,7 +86,7 @@ import com.pennywiseai.tracker.data.database.entity.UnrecognizedSmsEntity
     ]
 )
 @TypeConverters(Converters::class)
-abstract class PennyWiseDatabase : RoomDatabase() {
+abstract class SavoraDatabase : RoomDatabase() {
     abstract fun transactionDao(): TransactionDao
     abstract fun subscriptionDao(): SubscriptionDao
     abstract fun chatDao(): ChatDao
@@ -106,18 +106,18 @@ abstract class PennyWiseDatabase : RoomDatabase() {
         const val DATABASE_NAME = "pennywise_database"
 
         @Volatile
-        private var INSTANCE: PennyWiseDatabase? = null
+        private var INSTANCE: SavoraDatabase? = null
 
         /**
          * Returns a singleton instance of the database.
          * This is used by components that don't have access to Hilt injection
          * (like BroadcastReceivers).
          */
-        fun getInstance(context: android.content.Context): PennyWiseDatabase {
+        fun getInstance(context: android.content.Context): SavoraDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = androidx.room.Room.databaseBuilder(
                     context.applicationContext,
-                    PennyWiseDatabase::class.java,
+                    SavoraDatabase::class.java,
                     DATABASE_NAME
                 )
                     .addMigrations(
@@ -138,7 +138,7 @@ abstract class PennyWiseDatabase : RoomDatabase() {
          * Sets the singleton instance. Called by Hilt module to ensure
          * the same instance is used throughout the app.
          */
-        fun setInstance(database: PennyWiseDatabase) {
+        fun setInstance(database: SavoraDatabase) {
             INSTANCE = database
         }
 

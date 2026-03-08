@@ -10,7 +10,7 @@ import android.provider.Telephony
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.pennywiseai.tracker.MainActivity
-import com.pennywiseai.tracker.PennyWiseApplication
+import com.pennywiseai.tracker.SavoraApplication
 import com.pennywiseai.tracker.R
 import com.pennywiseai.tracker.data.manager.SmsTransactionProcessor
 import dagger.hilt.EntryPoint
@@ -143,7 +143,7 @@ class SmsBroadcastReceiver : BroadcastReceiver() {
 
     private fun isAppInForeground(context: Context): Boolean {
         return try {
-            val application = context.applicationContext as? PennyWiseApplication
+            val application = context.applicationContext as? SavoraApplication
             application?.isAppInForeground ?: false
         } catch (e: Exception) {
             false

@@ -99,7 +99,7 @@ val ColorScheme.expense: Color
     get() = if (isSystemInDarkTheme()) expense_dark else expense_light
 
 @Composable
-fun PennyWiseTheme(
+fun SavoraTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Disabled dynamic color so standard Orange/Purple theme applies
     dynamicColor: Boolean = false,

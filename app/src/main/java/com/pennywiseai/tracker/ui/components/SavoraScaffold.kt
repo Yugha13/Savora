@@ -9,7 +9,7 @@ import androidx.compose.ui.graphics.Color
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PennyWiseScaffold(
+fun SavoraScaffold(
     modifier: Modifier = Modifier,
     title: String = "",
     navigationIcon: @Composable (() -> Unit)? = null,

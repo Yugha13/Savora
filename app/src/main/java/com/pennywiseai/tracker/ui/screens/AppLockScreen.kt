@@ -16,7 +16,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pennywiseai.tracker.domain.security.BiometricAuthManager
 import com.pennywiseai.tracker.domain.security.BiometricCapability
-import com.pennywiseai.tracker.ui.components.PennyWiseScaffold
+import com.pennywiseai.tracker.ui.components.SavoraScaffold
 import com.pennywiseai.tracker.ui.theme.Spacing
 import com.pennywiseai.tracker.ui.viewmodel.AppLockViewModel
 import dagger.hilt.android.EntryPointAccessors
@@ -52,7 +52,7 @@ fun AppLockScreen(
         }
     }
 
-    PennyWiseScaffold(
+    SavoraScaffold(
         modifier = modifier,
         transparentTopBar = true
     ) { innerPadding ->
@@ -80,7 +80,7 @@ fun AppLockScreen(
 
                 // Title
                 Text(
-                    text = "PennyWise is Locked",
+                    text = "Savora is Locked",
                     style = MaterialTheme.typography.headlineMedium,
                     textAlign = TextAlign.Center
                 )

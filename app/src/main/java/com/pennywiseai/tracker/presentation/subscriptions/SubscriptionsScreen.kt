@@ -393,7 +393,7 @@ private fun SwipeableSubscriptionItem(
 
 @Composable
 private fun EmptySubscriptionsState() {
-    PennyWiseCard(
+    SavoraCard(
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(

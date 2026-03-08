@@ -14,7 +14,7 @@ object RoadmapViews {
 
         respondHtml(HttpStatusCode.OK) {
             head {
-                SharedComponents.apply { commonHead("PennyWise AI - Roadmap") }
+                SharedComponents.apply { commonHead("Savora - Roadmap") }
                 style {
                     unsafe {
                         +SharedComponents.commonStyles

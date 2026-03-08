@@ -28,7 +28,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.pennywiseai.tracker.presentation.navigation.BottomNavItem
 
 @Composable
-fun PennyWiseBottomNavigation(
+fun SavoraBottomNavigation(
     navController: NavController
 ) {
     val items = listOf(

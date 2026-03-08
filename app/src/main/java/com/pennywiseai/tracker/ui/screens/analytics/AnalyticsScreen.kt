@@ -446,7 +446,7 @@ private fun EmptyAnalyticsState(
             .padding(Dimensions.Padding.content),
         contentAlignment = Alignment.Center
     ) {
-        PennyWiseCard(
+        SavoraCard(
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(

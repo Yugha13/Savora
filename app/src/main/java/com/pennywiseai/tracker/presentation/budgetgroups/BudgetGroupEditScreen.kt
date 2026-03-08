@@ -24,7 +24,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.pennywiseai.tracker.data.database.entity.BudgetGroupType
-import com.pennywiseai.tracker.ui.components.PennyWiseScaffold
+import com.pennywiseai.tracker.ui.components.SavoraScaffold
 import com.pennywiseai.tracker.ui.theme.*
 import com.pennywiseai.tracker.utils.CurrencyFormatter
 import java.math.BigDecimal
@@ -50,7 +50,7 @@ fun BudgetGroupEditScreen(
         }
     }
 
-    PennyWiseScaffold(
+    SavoraScaffold(
         title = if ((uiState.groupId ?: -1L) > 0) "Edit Group" else "New Group",
         navigationIcon = {
             IconButton(onClick = onNavigateBack) {
@@ -67,7 +67,7 @@ fun BudgetGroupEditScreen(
             ) {
                 CircularProgressIndicator()
             }
-            return@PennyWiseScaffold
+            return@SavoraScaffold
         }
 
         LazyColumn(

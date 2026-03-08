@@ -19,7 +19,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.pennywiseai.tracker.ui.components.PennyWiseScaffold
+import com.pennywiseai.tracker.ui.components.SavoraScaffold
 import com.pennywiseai.tracker.ui.theme.Spacing
 import com.pennywiseai.tracker.ui.viewmodel.PermissionViewModel
 
@@ -54,7 +54,7 @@ fun PermissionScreen(
     }
     
     
-    PennyWiseScaffold(
+    SavoraScaffold(
         modifier = modifier,
         transparentTopBar = true
     ) { innerPadding ->
@@ -85,7 +85,7 @@ fun PermissionScreen(
         Spacer(modifier = Modifier.height(Spacing.md))
         
         Text(
-            text = "PennyWise can automatically detect and categorize your bank transactions from SMS messages, saving you time and effort.",
+            text = "Savora can automatically detect and categorize your bank transactions from SMS messages, saving you time and effort.",
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.onSurfaceVariant

@@ -1,7 +1,7 @@
-# PennyWise Project Context
+# Savora Project Context
 
 ## Project Overview
-PennyWise is a minimalist, AI-powered expense tracker for Android that automatically extracts transaction data from SMS messages using on-device processing.
+Savora is a minimalist, AI-powered expense tracker for Android that automatically extracts transaction data from SMS messages using on-device processing.
 
 ## Important Documents
 Please reference these documents when working on this project:
@@ -24,8 +24,8 @@ Please reference these documents when working on this project:
 - **Spacing**: 8dp grid system
 - **Typography**: Material 3 type scale
 - **Navigation**: NavigationBar for phones, NavigationRail for tablets
-- **Edge-to-Edge**: All screens use PennyWiseScaffold with default TopAppBar for consistent system bar handling
-- **Consistent UI**: PennyWiseScaffold provides default TopAppBar with options for title, navigation, actions, and transparency
+- **Edge-to-Edge**: All screens use SavoraScaffold with default TopAppBar for consistent system bar handling
+- **Consistent UI**: SavoraScaffold provides default TopAppBar with options for title, navigation, actions, and transparency
 
 ## Code Style Guidelines
 - Follow Kotlin coding conventions

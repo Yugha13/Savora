@@ -19,14 +19,14 @@ import androidx.navigation.compose.rememberNavController
 import com.pennywiseai.tracker.navigation.AppLock
 import com.pennywiseai.tracker.navigation.Home
 import com.pennywiseai.tracker.navigation.Permission
-import com.pennywiseai.tracker.navigation.PennyWiseNavHost
-import com.pennywiseai.tracker.ui.theme.PennyWiseTheme
+import com.pennywiseai.tracker.navigation.SavoraNavHost
+import com.pennywiseai.tracker.ui.theme.SavoraTheme
 import com.pennywiseai.tracker.ui.viewmodel.AppLockViewModel
 import com.pennywiseai.tracker.ui.viewmodel.ThemeViewModel
 import com.pennywiseai.tracker.widget.RecentTransactionsWidgetUpdateWorker
 
 @Composable
-fun PennyWiseApp(
+fun SavoraApp(
     themeViewModel: ThemeViewModel = hiltViewModel(),
     appLockViewModel: AppLockViewModel = hiltViewModel(),
     editTransactionId: Long? = null,
@@ -108,11 +108,11 @@ fun PennyWiseApp(
         RecentTransactionsWidgetUpdateWorker.enqueueOneShot(context.applicationContext)
     }
 
-    PennyWiseTheme(
+    SavoraTheme(
         darkTheme = darkTheme,
         dynamicColor = themeUiState.isDynamicColorEnabled
     ) {
-        PennyWiseNavHost(
+        SavoraNavHost(
             navController = navController,
             themeViewModel = themeViewModel,
             startDestination = startDestination,

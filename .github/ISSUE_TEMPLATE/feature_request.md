@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: Suggest an idea for PennyWise
+about: Suggest an idea for Savora
 title: '[FEATURE] '
 labels: enhancement
 assignees: 'sarim2000'

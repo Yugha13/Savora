@@ -1,4 +1,4 @@
-PennyWise AI — Free & Open-Source, private SMS-powered expense tracker
+Savora — Free & Open-Source, private SMS-powered expense tracker
 
 Automatically extracts transaction data from bank SMS messages using pattern-based parsing. Works 100% offline - no internet connection required.
 
@@ -50,4 +50,4 @@ Technical Notes:
 • Optional Qwen 2.5 model (Apache 2.0) for chat feature only
 • F-Droid flavor excludes all proprietary dependencies
 
-PennyWise respects your privacy while helping you take control of your finances. Join thousands of users who trust PennyWise for secure, automatic expense tracking without compromising their data.
+Savora respects your privacy while helping you take control of your finances. Join thousands of users who trust Savora for secure, automatic expense tracking without compromising their data.

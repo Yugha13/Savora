@@ -16,7 +16,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.pennywiseai.tracker.ui.components.PennyWiseCard
+import com.pennywiseai.tracker.ui.components.SavoraCard
 import com.pennywiseai.tracker.ui.theme.*
 import com.pennywiseai.tracker.utils.CurrencyFormatter
 import java.math.BigDecimal
@@ -51,7 +51,7 @@ fun TransactionTotalsCard(
         label = "net_alpha"
     )
     
-    PennyWiseCard(
+    SavoraCard(
         modifier = modifier.fillMaxWidth()
     ) {
         Column(

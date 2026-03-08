@@ -5,7 +5,7 @@ import android.net.Uri
 import android.util.Log
 import com.google.gson.GsonBuilder
 import androidx.room.withTransaction
-import com.pennywiseai.tracker.data.database.PennyWiseDatabase
+import com.pennywiseai.tracker.data.database.SavoraDatabase
 import com.pennywiseai.tracker.data.database.entity.*
 import com.pennywiseai.tracker.data.preferences.UserPreferencesRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -22,7 +22,7 @@ import javax.inject.Singleton
 @Singleton
 class BackupImporter @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val database: PennyWiseDatabase,
+    private val database: SavoraDatabase,
     private val userPreferencesRepository: UserPreferencesRepository
 ) {
     
@@ -64,12 +64,12 @@ class BackupImporter @Inject constructor(
     /**
      * Read and parse backup file
      */
-    private suspend fun readBackupFile(uri: Uri): PennyWiseBackup {
+    private suspend fun readBackupFile(uri: Uri): SavoraBackup {
         return withContext(Dispatchers.IO) {
             context.contentResolver.openInputStream(uri)?.use { inputStream ->
                 val reader = BufferedReader(InputStreamReader(inputStream))
                 val content = reader.readText()
-                gson.fromJson(content, PennyWiseBackup::class.java)
+                gson.fromJson(content, SavoraBackup::class.java)
             } ?: throw Exception("Failed to read backup file")
         }
     }
@@ -77,15 +77,15 @@ class BackupImporter @Inject constructor(
     /**
      * Check if backup version is compatible
      */
-    private fun isCompatibleVersion(backup: PennyWiseBackup): Boolean {
+    private fun isCompatibleVersion(backup: SavoraBackup): Boolean {
         // For now, accept all v1.x backups
-        return backup.format.startsWith("PennyWise Backup v1")
+        return backup.format.startsWith("Savora Backup v1")
     }
     
     /**
      * Replace all existing data with backup data
      */
-    private suspend fun replaceAllData(backup: PennyWiseBackup): ImportResult {
+    private suspend fun replaceAllData(backup: SavoraBackup): ImportResult {
         var importedTransactions = 0
         var importedCategories = 0
         
@@ -153,7 +153,7 @@ class BackupImporter @Inject constructor(
     /**
      * Merge backup data with existing data
      */
-    private suspend fun mergeData(backup: PennyWiseBackup): ImportResult {
+    private suspend fun mergeData(backup: SavoraBackup): ImportResult {
         var importedTransactions = 0
         var importedCategories = 0
         var skippedDuplicates = 0

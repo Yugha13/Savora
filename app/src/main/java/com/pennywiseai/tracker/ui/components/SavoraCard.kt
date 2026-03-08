@@ -12,7 +12,7 @@ import androidx.compose.ui.unit.dp
 import com.pennywiseai.tracker.ui.theme.Spacing
 
 @Composable
-fun PennyWiseCard(
+fun SavoraCard(
     modifier: Modifier = Modifier,
     shape: Shape = MaterialTheme.shapes.medium,
     colors: CardColors = CardDefaults.cardColors(),

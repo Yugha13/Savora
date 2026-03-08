@@ -16,7 +16,7 @@ import com.pennywiseai.tracker.ui.MainScreen
 import com.pennywiseai.tracker.ui.viewmodel.ThemeViewModel
 
 @Composable
-fun PennyWiseNavHost(
+fun SavoraNavHost(
     navController: NavHostController,
     modifier: Modifier = Modifier,
     themeViewModel: ThemeViewModel = hiltViewModel(),

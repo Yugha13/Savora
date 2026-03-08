@@ -41,7 +41,7 @@ import androidx.navigation.navArgument
 import com.pennywiseai.tracker.presentation.home.HomeScreen
 import com.pennywiseai.tracker.presentation.subscriptions.SubscriptionsScreen
 import com.pennywiseai.tracker.presentation.transactions.TransactionsScreen
-import com.pennywiseai.tracker.ui.components.PennyWiseBottomNavigation
+import com.pennywiseai.tracker.ui.components.SavoraBottomNavigation
 import com.pennywiseai.tracker.ui.components.SpotlightTutorial
 import com.pennywiseai.tracker.ui.components.WhatsNewDialog
 import com.pennywiseai.tracker.ui.screens.settings.SettingsScreen
@@ -100,20 +100,20 @@ fun MainScreen(
             Scaffold(
             topBar = {
             val context = LocalContext.current
-            PennyWiseTopAppBar(
+            SavoraTopAppBar(
                 title = when (baseRoute) {
-                    "home" -> "PennyWise"
+                    "home" -> "Savora"
                     "transactions" -> "Transactions"
                     "subscriptions" -> "Subscriptions"
                     "analytics" -> "Analytics"
-                    "chat" -> "PennyWise AI"
+                    "chat" -> "Savora"
                     "settings" -> "Settings"
                     "categories" -> "Categories"
                     "unrecognized_sms" -> "Unrecognized Messages"
                     "manage_accounts" -> "Manage Accounts"
                     "add_account" -> "Add Account"
                     "faq" -> "Help & FAQ"
-                    else -> "PennyWise"
+                    else -> "Savora"
                 },
                 showBackButton = baseRoute in listOf("chat", "settings", "subscriptions", "transactions", "categories", "unrecognized_sms", "manage_accounts", "add_account", "faq"),
                 showSettingsButton = baseRoute !in listOf("chat", "settings", "categories", "unrecognized_sms", "manage_accounts", "add_account", "faq"),
@@ -411,14 +411,14 @@ fun MainScreen(
                 .imePadding(),
             contentAlignment = Alignment.BottomCenter
         ) {
-            PennyWiseBottomNavigation(navController = navController)
+            SavoraBottomNavigation(navController = navController)
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun PennyWiseTopAppBar(
+private fun SavoraTopAppBar(
     title: String,
     showBackButton: Boolean = false,
     showSettingsButton: Boolean = true,

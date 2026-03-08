@@ -34,7 +34,7 @@ fun UnifiedAccountsCard(
 ) {
     var showAllAccounts by remember { mutableStateOf(false) }
     
-    PennyWiseCard(
+    SavoraCard(
         modifier = modifier.fillMaxWidth()
     ) {
         Column(

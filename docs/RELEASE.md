@@ -1,6 +1,6 @@
 # Release Process
 
-This document describes how to create releases for PennyWise.
+This document describes how to create releases for Savora.
 
 ## Prerequisites
 

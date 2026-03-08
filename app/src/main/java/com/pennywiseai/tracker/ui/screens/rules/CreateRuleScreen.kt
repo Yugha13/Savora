@@ -14,7 +14,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.pennywiseai.tracker.domain.model.rule.*
-import com.pennywiseai.tracker.ui.components.PennyWiseScaffold
+import com.pennywiseai.tracker.ui.components.SavoraScaffold
 import com.pennywiseai.tracker.ui.theme.Dimensions
 import com.pennywiseai.tracker.ui.theme.Spacing
 import java.util.UUID
@@ -122,7 +122,7 @@ fun CreateRuleScreen(
         }
     )
 
-    PennyWiseScaffold(
+    SavoraScaffold(
         title = if (existingRule != null) "Edit Rule" else "Create Rule",
         navigationIcon = {
             IconButton(onClick = onNavigateBack) {
@@ -158,7 +158,7 @@ fun CreateRuleScreen(
                             updatedAt = System.currentTimeMillis()
                         )
                         onSaveRule(rule)
-                        // Navigation is handled in PennyWiseNavHost after saving
+                        // Navigation is handled in SavoraNavHost after saving
                     }
                 },
                 enabled = ruleName.isNotBlank() &&
