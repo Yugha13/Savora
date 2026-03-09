@@ -1265,7 +1265,7 @@ fun SettingsScreen(
         val timestamp = java.time.LocalDateTime.now().format(
             java.time.format.DateTimeFormatter.ofPattern("yyyy_MM_dd_HHmmss")
         )
-        val fileName = "Savora_Backup_$timestamp.pennywisebackup"
+        val fileName = "Savora_Backup_$timestamp.savorabackup"
         
         AlertDialog(
             onDismissRequest = { 

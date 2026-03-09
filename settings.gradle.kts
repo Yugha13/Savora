@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "pennywiseai-tracker"
+rootProject.name = "savora-tracker"
 include(":app")
 include(":parser-core")

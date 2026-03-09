@@ -20,9 +20,9 @@ class NotificationActionReceiver : BroadcastReceiver() {
     companion object {
         private const val TAG = "NotificationActionReceiver"
 
-        const val ACTION_DELETE_TRANSACTION = "com.pennywiseai.tracker.ACTION_DELETE_TRANSACTION"
-        const val ACTION_CONFIRM_TRANSACTION = "com.pennywiseai.tracker.ACTION_CONFIRM_TRANSACTION"
-        const val ACTION_CHANGE_CATEGORY = "com.pennywiseai.tracker.ACTION_CHANGE_CATEGORY"
+        const val ACTION_DELETE_TRANSACTION = "com.savora.tracker.ACTION_DELETE_TRANSACTION"
+        const val ACTION_CONFIRM_TRANSACTION = "com.savora.tracker.ACTION_CONFIRM_TRANSACTION"
+        const val ACTION_CHANGE_CATEGORY = "com.savora.tracker.ACTION_CHANGE_CATEGORY"
         const val EXTRA_TRANSACTION_ID = "transaction_id"
         const val EXTRA_NOTIFICATION_ID = "notification_id"
         const val EXTRA_NEW_CATEGORY = "new_category"

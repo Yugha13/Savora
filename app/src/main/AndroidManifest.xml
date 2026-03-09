@@ -30,7 +30,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Pennywisecompose">
+        android:theme="@style/Theme.SavoraCompose">
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -82,8 +82,8 @@
             android:name=".receiver.NotificationActionReceiver"
             android:exported="false">
             <intent-filter>
-                <action android:name="com.pennywiseai.tracker.ACTION_DELETE_TRANSACTION" />
-                <action android:name="com.pennywiseai.tracker.ACTION_CONFIRM_TRANSACTION" />
+                <action android:name="com.savora.tracker.ACTION_DELETE_TRANSACTION" />
+                <action android:name="com.savora.tracker.ACTION_CONFIRM_TRANSACTION" />
             </intent-filter>
         </receiver>
 

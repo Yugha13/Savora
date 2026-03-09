@@ -162,7 +162,7 @@ class BackupExporter @Inject constructor(
         val timestamp = LocalDateTime.now().format(
             DateTimeFormatter.ofPattern("yyyy_MM_dd_HHmmss")
         )
-        val fileName = "Savora_Backup_$timestamp.pennywisebackup"
+        val fileName = "Savora_Backup_$timestamp.savorabackup"
         
         return File(exportDir, fileName)
     }
