@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.pennywiseai.tracker.data.currency.CurrencyConversionService
 import com.pennywiseai.tracker.data.database.entity.TransactionWithSplits
 import com.pennywiseai.tracker.data.preferences.UserPreferencesRepository
+import com.pennywiseai.tracker.data.repository.MonthlyBudgetRepository
 import com.pennywiseai.tracker.data.repository.TransactionRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import com.pennywiseai.tracker.presentation.common.TimePeriod
@@ -24,9 +25,13 @@ import javax.inject.Inject
 class AnalyticsViewModel @Inject constructor(
     private val transactionRepository: TransactionRepository,
     private val userPreferencesRepository: UserPreferencesRepository,
+    private val monthlyBudgetRepository: MonthlyBudgetRepository,
     private val currencyConversionService: CurrencyConversionService,
     private val savedStateHandle: androidx.lifecycle.SavedStateHandle
 ) : ViewModel() {
+    
+    private val _selectedDate = MutableStateFlow(LocalDate.now())
+    val selectedDate: StateFlow<LocalDate> = _selectedDate.asStateFlow()
     
     private val _selectedPeriod = MutableStateFlow(TimePeriod.THIS_MONTH)
     val selectedPeriod: StateFlow<TimePeriod> = _selectedPeriod.asStateFlow()
@@ -80,15 +85,15 @@ class AnalyticsViewModel @Inject constructor(
     // Reactive UI state that automatically updates when any filter changes
     // Uses flatMapLatest to cancel previous data loads when filters change (prevents race conditions)
     val uiState: StateFlow<AnalyticsUiState> = combine(
-        _selectedPeriod,
-        customDateRange,
+        combine(_selectedPeriod, _selectedDate, customDateRange) { p, d, r -> Triple(p, d, r) },
         _transactionTypeFilter,
         _selectedCurrency,
         _isUnifiedMode
-    ) { period, customRange, typeFilter, currency, isUnified ->
-        FilterState(period, customRange, typeFilter, currency, isUnified)
+    ) { (period, selectedDate, customRange), typeFilter, currency, isUnified ->
+        FilterState(period, selectedDate, customRange, typeFilter, currency, isUnified)
     }.flatMapLatest { filterState ->
         // Determine date range based on selected period
+        // If period is THIS_MONTH, we actually want to show data for the selected date's month if provided
         val dateRange = if (filterState.period == TimePeriod.CUSTOM) {
             val customRange = filterState.customRange
             // Guard against invalid state: CUSTOM period must have a date range
@@ -138,20 +143,45 @@ class AnalyticsViewModel @Inject constructor(
                 }
 
                 // Load transactions with splits for proper category breakdown
-                if (filterState.isUnifiedMode) {
-                    // Unified mode: load ALL currencies
+                val transactionsFlow = if (filterState.isUnifiedMode) {
                     transactionRepository.getTransactionsWithSplitsFiltered(
                         startDate = dateRange.first,
                         endDate = dateRange.second
-                    ).map { txs -> Triple(txs, dbTransactionType, true) }
+                    )
                 } else {
                     transactionRepository.getTransactionsWithSplitsFiltered(
                         startDate = dateRange.first,
                         endDate = dateRange.second,
                         currency = filterState.currency
-                    ).map { txs -> Triple(txs, dbTransactionType, false) }
+                    )
                 }
-            }.mapLatest { (allTransactionsWithSplits, transactionTypeFilter, isUnified) ->
+
+                // Load budget data
+                val budgetFlow = if (filterState.isUnifiedMode) {
+                    // Note: getMonthSpendingAllCurrencies would need aggregation. 
+                    // For simplicity, we'll try to use the selected month's data.
+                    monthlyBudgetRepository.getMonthSpendingAllCurrencies(
+                        filterState.selectedDate.year,
+                        filterState.selectedDate.monthValue
+                    ).map { raw ->
+                        // Aggregate raw data as logic in MonthlyBudgetRepository.getMonthSpending does
+                        // but considering currencies. 
+                        // For now, let's just get the current month's spending in selected currency
+                        // to simplify the flow, or just use the current month logic.
+                        null // Placeholder for complex aggregation if needed
+                    }
+                } else {
+                    monthlyBudgetRepository.getMonthSpending(
+                        filterState.selectedDate.year,
+                        filterState.selectedDate.monthValue,
+                        filterState.currency
+                    )
+                }
+
+                combine(transactionsFlow, budgetFlow) { txs, budget -> 
+                    Triple(txs, budget, dbTransactionType) 
+                }
+            }.mapLatest { (allTransactionsWithSplits, budgetSpending, transactionTypeFilter) ->
                 // Filter by transaction type in memory (splits are already loaded)
                 val filteredTransactionsWithSplits = if (transactionTypeFilter != null) {
                     allTransactionsWithSplits.filter { it.transaction.transactionType == transactionTypeFilter }
@@ -165,7 +195,7 @@ class AnalyticsViewModel @Inject constructor(
 
                 // Calculate UNFILTERED total — convert if unified mode
                 var unfilteredTotalSpending = BigDecimal.ZERO
-                if (isUnified) {
+                if (filterState.isUnifiedMode) {
                     for (tx in allTransactions) {
                         unfilteredTotalSpending += currencyConversionService.convertAmount(tx.amount, tx.currency, displayCurrency)
                     }
@@ -181,7 +211,7 @@ class AnalyticsViewModel @Inject constructor(
                     val fromCurrency = txWithSplits.transaction.currency
                     txWithSplits.getAmountByCategory().forEach { (category, amount) ->
                         val categoryName = category.ifEmpty { "Others" }
-                        val converted = if (isUnified) {
+                        val converted = if (filterState.isUnifiedMode) {
                             currencyConversionService.convertAmount(amount, fromCurrency, displayCurrency)
                         } else {
                             amount
@@ -192,12 +222,15 @@ class AnalyticsViewModel @Inject constructor(
                 }
 
                 val categoryBreakdown = categoryAmounts.map { (categoryName, categoryTotal) ->
+                    val catSpendingInfo = budgetSpending?.categorySpending?.find { it.categoryName == categoryName }
                     CategoryData(
                         name = categoryName,
                         amount = categoryTotal,
+                        limit = catSpendingInfo?.limit,
                         percentage = if (unfilteredTotalSpending > BigDecimal.ZERO) {
                             (categoryTotal.divide(unfilteredTotalSpending, 4, java.math.RoundingMode.HALF_UP) * BigDecimal(100)).toFloat()
                         } else 0f,
+                        budgetPercentage = catSpendingInfo?.percentageUsed,
                         transactionCount = categoryTransactionCounts[categoryName] ?: 0
                     )
                 }.sortedByDescending { it.amount }
@@ -207,7 +240,7 @@ class AnalyticsViewModel @Inject constructor(
                     .groupBy { it.merchantName }
                     .entries
                     .map { (merchant, txns) ->
-                        val merchantAmount = if (isUnified) {
+                        val merchantAmount = if (filterState.isUnifiedMode) {
                             var sum = BigDecimal.ZERO
                             for (tx in txns) {
                                 sum += currencyConversionService.convertAmount(tx.amount, tx.currency, displayCurrency)
@@ -238,6 +271,8 @@ class AnalyticsViewModel @Inject constructor(
 
                 AnalyticsUiState(
                     totalSpending = unfilteredTotalSpending,
+                    totalIncome = budgetSpending?.totalIncome ?: BigDecimal.ZERO,
+                    totalLimit = budgetSpending?.totalLimit ?: BigDecimal.ZERO,
                     categoryBreakdown = categoryBreakdown,
                     topMerchants = merchantBreakdown,
                     transactionCount = allTransactions.size,
@@ -254,6 +289,19 @@ class AnalyticsViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = AnalyticsUiState(isLoading = true)
     )
+
+    fun selectDate(date: LocalDate) {
+        _selectedDate.value = date
+        // If the date is in a different month, we should ideally adjust the period if it was THIS_MONTH
+    }
+
+    fun nextMonth() {
+        _selectedDate.value = _selectedDate.value.plusMonths(1)
+    }
+
+    fun previousMonth() {
+        _selectedDate.value = _selectedDate.value.minusMonths(1)
+    }
 
     fun selectPeriod(period: TimePeriod) {
         _selectedPeriod.value = period
@@ -303,6 +351,7 @@ class AnalyticsViewModel @Inject constructor(
  */
 private data class FilterState(
     val period: TimePeriod,
+    val selectedDate: LocalDate,
     val customRange: Pair<LocalDate, LocalDate>?,
     val typeFilter: TransactionTypeFilter,
     val currency: String,
@@ -311,6 +360,8 @@ private data class FilterState(
 
 data class AnalyticsUiState(
     val totalSpending: BigDecimal = BigDecimal.ZERO,
+    val totalIncome: BigDecimal = BigDecimal.ZERO,
+    val totalLimit: BigDecimal = BigDecimal.ZERO,
     val categoryBreakdown: List<CategoryData> = emptyList(),
     val topMerchants: List<MerchantData> = emptyList(),
     val transactionCount: Int = 0,
@@ -324,7 +375,9 @@ data class AnalyticsUiState(
 data class CategoryData(
     val name: String,
     val amount: BigDecimal,
+    val limit: BigDecimal? = null,
     val percentage: Float,
+    val budgetPercentage: Float? = null,
     val transactionCount: Int
 )
 

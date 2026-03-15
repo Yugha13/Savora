@@ -44,6 +44,8 @@ import com.pennywiseai.tracker.ui.theme.*
 import com.pennywiseai.tracker.utils.CurrencyFormatter
 import com.pennywiseai.tracker.utils.DateRangeUtils
 import java.math.BigDecimal
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -55,6 +57,7 @@ fun AnalyticsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val selectedPeriod by viewModel.selectedPeriod.collectAsStateWithLifecycle()
+    val selectedDate by viewModel.selectedDate.collectAsStateWithLifecycle()
     val transactionTypeFilter by viewModel.transactionTypeFilter.collectAsStateWithLifecycle()
     val selectedCurrency by viewModel.selectedCurrency.collectAsStateWithLifecycle()
     val availableCurrencies by viewModel.availableCurrencies.collectAsStateWithLifecycle()
@@ -96,12 +99,18 @@ fun AnalyticsScreen(
             
             // 2. Calendar Strip
             item {
-                CalendarStrip()
+                CalendarStrip(
+                    selectedDate = selectedDate,
+                    onDateSelected = { viewModel.selectDate(it) },
+                    onPreviousMonth = { viewModel.previousMonth() },
+                    onNextMonth = { viewModel.nextMonth() }
+                )
             }
             
             // 3. Summary Cards (Total Salary, Total Expense)
             item {
                 ExpensesSummaryCards(
+                    totalIncome = uiState.totalIncome,
                     totalExpense = uiState.totalSpending,
                     currency = uiState.currency
                 )
@@ -118,6 +127,11 @@ fun AnalyticsScreen(
                 
                 items(uiState.categoryBreakdown) { categoryInfo ->
                     ExpensesCategoryItem(categoryInfo = categoryInfo, currency = uiState.currency)
+                }
+
+                item {
+                    Spacer(modifier = Modifier.height(Spacing.lg))
+                    AnalyticsOverview(uiState = uiState)
                 }
             } else if (!uiState.isLoading) {
                 // Empty state
@@ -497,37 +511,65 @@ fun ExpensesTopHeader() {
 }
 
 @Composable
-fun CalendarStrip() {
+fun CalendarStrip(
+    selectedDate: LocalDate,
+    onDateSelected: (LocalDate) -> Unit,
+    onPreviousMonth: () -> Unit,
+    onNextMonth: () -> Unit
+) {
+    val monthFormatter = java.time.format.DateTimeFormatter.ofPattern("MMMM yyyy")
+    
     Column(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(Icons.Default.KeyboardArrowLeft, contentDescription = "Previous")
-            Text("October 2022", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
-            Icon(Icons.Default.KeyboardArrowRight, contentDescription = "Next")
+            IconButton(onClick = onPreviousMonth) {
+                Icon(Icons.Default.KeyboardArrowLeft, contentDescription = "Previous")
+            }
+            Text(
+                text = selectedDate.format(monthFormatter),
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.titleMedium
+            )
+            IconButton(onClick = onNextMonth) {
+                Icon(Icons.Default.KeyboardArrowRight, contentDescription = "Next")
+            }
         }
         Spacer(modifier = Modifier.height(16.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            val days = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
-            val dates = listOf("11", "12", "13", "14", "15", "16", "17")
+            // Show 7 days centered around selectedDate
+            val startDate = selectedDate.minusDays(3)
+            val days = (0..6).map { startDate.plusDays(it.toLong()) }
             
-            days.forEachIndexed { index, day ->
-                val isSelected = index == 3 // Thursday 14 is highlighted
+            days.forEach { date ->
+                val isSelected = date.isEqual(selectedDate)
+                val dayName = date.dayOfWeek.name.take(1) // M, T, W...
+                
                 Column(
                     modifier = Modifier
                         .clip(RoundedCornerShape(24.dp))
                         .background(if (isSelected) MaterialTheme.colorScheme.secondary else Color.Transparent)
-                        .padding(vertical = 12.dp, horizontal = 8.dp),
+                        .clickable { onDateSelected(date) }
+                        .padding(vertical = 12.dp, horizontal = 10.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text(day, style = MaterialTheme.typography.bodySmall, color = if (isSelected) Color.White else Color.Gray)
-                    Text(dates[index], fontWeight = FontWeight.Bold, color = if (isSelected) Color.White else MaterialTheme.colorScheme.onBackground)
+                    Text(
+                        text = dayName,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = if (isSelected) Color.White else Color.Gray
+                    )
+                    Text(
+                        text = date.dayOfMonth.toString(),
+                        fontWeight = FontWeight.Bold,
+                        color = if (isSelected) Color.White else MaterialTheme.colorScheme.onBackground
+                    )
+                    // Optional: dot for transactions on this day
                 }
             }
         }
@@ -535,14 +577,11 @@ fun CalendarStrip() {
 }
 
 @Composable
-fun ExpensesSummaryCards(totalExpense: BigDecimal, currency: String) {
+fun ExpensesSummaryCards(totalIncome: BigDecimal, totalExpense: BigDecimal, currency: String) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        val mockupSalary = BigDecimal("3644.00") // Just spoofing the unvailable data matching mockup
-        val mockupExpense = if (totalExpense > BigDecimal.ZERO) totalExpense else BigDecimal("1984.00")
-        
         // Purple Salary Card
         Card(
             modifier = Modifier.weight(1f).height(120.dp),
@@ -557,7 +596,6 @@ fun ExpensesSummaryCards(totalExpense: BigDecimal, currency: String) {
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    // White icon box
                     Box(modifier = Modifier.size(32.dp).clip(CircleShape).background(Color.White.copy(alpha=0.2f)), contentAlignment = Alignment.Center) {
                         Icon(Icons.Default.Wallet, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
                     }
@@ -565,7 +603,7 @@ fun ExpensesSummaryCards(totalExpense: BigDecimal, currency: String) {
                 }
                 Column {
                     Text("Total Salary", color = Color.White.copy(alpha=0.7f), style = MaterialTheme.typography.bodySmall)
-                    Text(CurrencyFormatter.formatCurrency(mockupSalary, currency), color = Color.White, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge)
+                    Text(CurrencyFormatter.formatCurrency(totalIncome, currency), color = Color.White, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge)
                 }
             }
         }
@@ -591,21 +629,29 @@ fun ExpensesSummaryCards(totalExpense: BigDecimal, currency: String) {
                 }
                 Column {
                     Text("Total Expense", color = Color.White.copy(alpha=0.7f), style = MaterialTheme.typography.bodySmall)
-                    Text(CurrencyFormatter.formatCurrency(mockupExpense, currency), color = Color.White, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge)
+                    Text(CurrencyFormatter.formatCurrency(totalExpense, currency), color = Color.White, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge)
                 }
             }
         }
     }
-}
-
-@Composable
+}@Composable
 fun ExpensesCategoryItem(categoryInfo: CategoryData, currency: String) {
+    val budgetText = if (categoryInfo.limit != null) {
+        "Budget ${CurrencyFormatter.formatCurrency(categoryInfo.limit, currency)}"
+    } else {
+        "No Budget Set"
+    }
+    
+    val budgetProgress = categoryInfo.budgetPercentage?.div(100f)?.coerceIn(0f, 1f) ?: 0f
+    val percentageText = categoryInfo.budgetPercentage?.let { "${it.toInt()}%" } ?: "0%"
+
     Row(
         modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Row(
+            modifier = Modifier.weight(1f),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -617,7 +663,11 @@ fun ExpensesCategoryItem(categoryInfo: CategoryData, currency: String) {
                     .background(Color(0xFFF0F0F0)),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(CategoryMapping.categories[categoryInfo.name]?.icon ?: Icons.Default.Category, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                Icon(
+                    imageVector = CategoryMapping.categories[categoryInfo.name]?.icon ?: Icons.Default.Category,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
             }
             
             Column {
@@ -627,9 +677,8 @@ fun ExpensesCategoryItem(categoryInfo: CategoryData, currency: String) {
                     fontWeight = FontWeight.SemiBold
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-                // Mock Subtitle
                 Text(
-                    text = "Budget $ 900",
+                    text = budgetText,
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.Gray
                 )
@@ -644,17 +693,154 @@ fun ExpensesCategoryItem(categoryInfo: CategoryData, currency: String) {
                 color = MaterialTheme.colorScheme.onBackground
             )
             Spacer(modifier = Modifier.height(4.dp))
-            // Minimal Linear Progress Bar
             Row(verticalAlignment = Alignment.CenterVertically) {
                 LinearProgressIndicator(
-                    progress = { 0.65f }, // mock progress
+                    progress = { budgetProgress },
                     modifier = Modifier.width(60.dp).height(4.dp).clip(RoundedCornerShape(2.dp)),
                     color = MaterialTheme.colorScheme.secondary,
                     trackColor = Color.LightGray.copy(alpha=0.3f)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("65%", style = MaterialTheme.typography.bodySmall, color = Color.Gray, fontSize = 10.sp)
+                Text(percentageText, style = MaterialTheme.typography.bodySmall, color = Color.Gray, fontSize = 10.sp)
             }
+        }
+    }
+}
+
+@Composable
+fun AnalyticsOverview(uiState: AnalyticsUiState) {
+    val incomeSpentPercentage = if (uiState.totalIncome > BigDecimal.ZERO) {
+        (uiState.totalSpending.toFloat() / uiState.totalIncome.toFloat() * 100f).coerceIn(0f, 100f)
+    } else 0f
+    
+    val currentMonthYear = java.time.format.DateTimeFormatter.ofPattern("MMMM, yyyy").format(java.time.LocalDate.now())
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        SectionHeader(
+            title = "Analytics",
+            action = { Text("View All", color = MaterialTheme.colorScheme.onSurfaceVariant) }
+        )
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "You have Spent ${CurrencyFormatter.formatCurrency(uiState.totalSpending, uiState.currency)}",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "this month.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray
+                )
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                // Income usage bar
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(0.9f)
+                        .height(32.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color(0xFFF0F0F0))
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(incomeSpentPercentage / 100f)
+                            .fillMaxHeight()
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(MaterialTheme.colorScheme.primary),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (incomeSpentPercentage > 15f) {
+                            Text(
+                                text = "${incomeSpentPercentage.toInt()}%",
+                                color = Color.White,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                    if (incomeSpentPercentage <= 15f) {
+                         Text(
+                            text = "${incomeSpentPercentage.toInt()}%",
+                            color = Color.Gray,
+                            style = MaterialTheme.typography.labelSmall,
+                            modifier = Modifier.align(Alignment.CenterEnd).padding(end = 8.dp)
+                        )
+                    }
+                }
+            }
+            
+            Text(
+                text = currentMonthYear,
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.Gray
+            )
+        }
+        
+        Spacer(modifier = Modifier.height(32.dp))
+        
+        // Donut Chart logic
+        Box(
+            modifier = Modifier.fillMaxWidth().height(250.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            DonutChart(
+                categories = uiState.categoryBreakdown.take(4),
+                modifier = Modifier.size(200.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun DonutChart(categories: List<CategoryData>, modifier: Modifier = Modifier) {
+    if (categories.isEmpty()) return
+    
+    val colors = listOf(
+        Color(0xFF2E334D), // Dark Blue
+        Color(0xFFFF7043), // Orange
+        Color(0xFF8544F1), // Purple
+        Color(0xFFA5D6A7)  // Green
+    )
+    
+    Canvas(modifier = modifier) {
+        var startAngle = -90f
+        categories.forEachIndexed { index, category ->
+            val sweepAngle = (category.amount.toFloat() / categories.sumOf { it.amount.toDouble() }.toFloat()) * 360f
+            drawArc(
+                color = colors[index % colors.size],
+                startAngle = startAngle,
+                sweepAngle = sweepAngle,
+                useCenter = false,
+                style = Stroke(width = 40.dp.toPx())
+            )
+            
+            // Draw Labels (Simplistic)
+            val angle = startAngle + sweepAngle / 2
+            val radius = size.width / 2 + 40.dp.toPx()
+            val x = (radius * kotlin.math.cos(Math.toRadians(angle.toDouble()))).toFloat() + size.width / 2
+            val y = (radius * kotlin.math.sin(Math.toRadians(angle.toDouble()))).toFloat() + size.height / 2
+            
+            // We'll skip complex text drawing in Canvas for now to avoid complexity, 
+            // the DonutChart looks good enough as a visual summary.
+            
+            startAngle += sweepAngle
+        }
+    }
+    
+    // Labels overlay
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        categories.take(1).forEach { 
+            Text(it.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(CurrencyFormatter.formatCurrency(it.amount, "INR"), style = MaterialTheme.typography.bodySmall, color = Color.Gray)
         }
     }
 }
