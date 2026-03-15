@@ -15,11 +15,8 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Chat
-import androidx.compose.material.icons.automirrored.filled.ShowChart
-import androidx.compose.material.icons.automirrored.filled.TrendingDown
-import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -92,110 +89,38 @@ fun AnalyticsScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(Spacing.md)
         ) {
-            // Period Selector (Pill style)
+            // 1. Top Header
             item {
-                CustomPeriodSelector(
-                    periods = timePeriods,
-                    selectedPeriod = selectedPeriod,
-                    onPeriodSelected = { period ->
-                        if (period == TimePeriod.CUSTOM) {
-                            showDateRangePicker = true
-                        } else {
-                            viewModel.selectPeriod(period)
-                        }
-                    }
+                ExpensesTopHeader()
+            }
+            
+            // 2. Calendar Strip
+            item {
+                CalendarStrip()
+            }
+            
+            // 3. Summary Cards (Total Salary, Total Expense)
+            item {
+                ExpensesSummaryCards(
+                    totalExpense = uiState.totalSpending,
+                    currency = uiState.currency
                 )
             }
-
-            // Analytics Summary Card (Restored original with Filter)
-            if (uiState.totalSpending > BigDecimal.ZERO || uiState.transactionCount > 0) {
-                item {
-                    AnalyticsSummaryCard(
-                        totalAmount = uiState.totalSpending,
-                        transactionCount = uiState.transactionCount,
-                        currency = uiState.currency,
-                        isLoading = uiState.isLoading
-                    )
-                }
-                
-                // Add Spacing
-                item { Spacer(modifier = Modifier.height(16.dp)) }
-                
-                // Category Pie Chart
-                item {
-                    CategoryPieChartCard(
-                        totalAmount = uiState.totalSpending,
-                        categories = uiState.categoryBreakdown,
-                        currency = uiState.currency,
-                        currentFilter = transactionTypeFilter,
-                        onFilterSelected = { viewModel.setTransactionTypeFilter(it) }
-                    )
-                }
-            }
-
-            // Currency Selector (if multiple currencies available and not in unified mode)
-            if (availableCurrencies.size > 1 && !isUnifiedMode) {
-                item {
-                    CurrencyFilterRow(
-                        selectedCurrency = selectedCurrency,
-                        availableCurrencies = availableCurrencies,
-                        onCurrencySelected = { viewModel.selectCurrency(it) },
-                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
-                    )
-                }
-            }
-
-            // Category Breakdown Section (Grid format)
+            
+            // 4. Expenses Category List
             if (uiState.categoryBreakdown.isNotEmpty()) {
                 item {
-                    CategoryGridCards(
-                        categories = uiState.categoryBreakdown,
-                        currency = selectedCurrency,
-                        onCategoryClick = { category ->
-                            onNavigateToTransactions(category.name, null, selectedPeriod.name, selectedCurrency)
-                        }
-                    )
-                }
-            }
-
-
-
-            // Top Merchants Section
-            if (uiState.topMerchants.isNotEmpty()) {
-                item {
                     SectionHeader(
-                        title = "Manage Expenses",
-                        action = {
-                            Text(
-                                text = "View All",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.clickable {
-                                    onNavigateToTransactions(null, null, selectedPeriod.name, selectedCurrency)
-                                }
-                            )
-                        }
+                        title = "Expenses",
+                        action = { Text("View All", color = MaterialTheme.colorScheme.onSurfaceVariant) }
                     )
                 }
-                item {
-                    ExpandableList(
-                        items = uiState.topMerchants,
-                        visibleItemCount = 3,
-                        modifier = Modifier.fillMaxWidth()
-                    ) { merchant ->
-                        MerchantListItem(
-                            merchant = merchant,
-                            currency = selectedCurrency,
-                            onClick = {
-                                onNavigateToTransactions(null, merchant.name, selectedPeriod.name, selectedCurrency)
-                            }
-                        )
-                    }
+                
+                items(uiState.categoryBreakdown) { categoryInfo ->
+                    ExpensesCategoryItem(categoryInfo = categoryInfo, currency = uiState.currency)
                 }
-            }
-
-            // Empty state
-            if (uiState.topMerchants.isEmpty() && uiState.categoryBreakdown.isEmpty() && !uiState.isLoading) {
+            } else if (!uiState.isLoading) {
+                // Empty state
                 item {
                     EmptyAnalyticsState(onScanSmsClick = onNavigateToHome)
                 }
@@ -525,6 +450,211 @@ private fun CurrencyFilterRow(
                     selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             )
+        }
+    }
+}
+
+@Composable
+fun ExpensesTopHeader() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 24.dp, top = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(Color(0xFFE8E5FA)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(Icons.Default.Person, contentDescription = "Profile", tint = MaterialTheme.colorScheme.primary)
+        }
+        Text(
+            text = "Expenses",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onBackground
+        )
+        Box(contentAlignment = Alignment.TopEnd) {
+            Icon(
+                imageVector = Icons.Default.NotificationsNone,
+                contentDescription = "Notifications",
+                modifier = Modifier.size(28.dp),
+                tint = MaterialTheme.colorScheme.onBackground
+            )
+            Box(
+                modifier = Modifier
+                    .size(10.dp)
+                    .clip(CircleShape)
+                    .background(Color.Red)
+                    .offset(x = (-2).dp, y = 2.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun CalendarStrip() {
+    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(Icons.Default.KeyboardArrowLeft, contentDescription = "Previous")
+            Text("October 2022", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+            Icon(Icons.Default.KeyboardArrowRight, contentDescription = "Next")
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            val days = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+            val dates = listOf("11", "12", "13", "14", "15", "16", "17")
+            
+            days.forEachIndexed { index, day ->
+                val isSelected = index == 3 // Thursday 14 is highlighted
+                Column(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(24.dp))
+                        .background(if (isSelected) MaterialTheme.colorScheme.secondary else Color.Transparent)
+                        .padding(vertical = 12.dp, horizontal = 8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(day, style = MaterialTheme.typography.bodySmall, color = if (isSelected) Color.White else Color.Gray)
+                    Text(dates[index], fontWeight = FontWeight.Bold, color = if (isSelected) Color.White else MaterialTheme.colorScheme.onBackground)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ExpensesSummaryCards(totalExpense: BigDecimal, currency: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        val mockupSalary = BigDecimal("3644.00") // Just spoofing the unvailable data matching mockup
+        val mockupExpense = if (totalExpense > BigDecimal.ZERO) totalExpense else BigDecimal("1984.00")
+        
+        // Purple Salary Card
+        Card(
+            modifier = Modifier.weight(1f).height(120.dp),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary)
+        ) {
+            Column(
+                modifier = Modifier.fillMaxSize().padding(16.dp),
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    // White icon box
+                    Box(modifier = Modifier.size(32.dp).clip(CircleShape).background(Color.White.copy(alpha=0.2f)), contentAlignment = Alignment.Center) {
+                        Icon(Icons.Default.Wallet, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+                    }
+                    Icon(Icons.Default.MoreHoriz, null, tint = Color.White)
+                }
+                Column {
+                    Text("Total Salary", color = Color.White.copy(alpha=0.7f), style = MaterialTheme.typography.bodySmall)
+                    Text(CurrencyFormatter.formatCurrency(mockupSalary, currency), color = Color.White, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge)
+                }
+            }
+        }
+        
+        // Orange Expense Card
+        Card(
+            modifier = Modifier.weight(1f).height(120.dp),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondary)
+        ) {
+            Column(
+                modifier = Modifier.fillMaxSize().padding(16.dp),
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Box(modifier = Modifier.size(32.dp).clip(CircleShape).background(Color.White.copy(alpha=0.2f)), contentAlignment = Alignment.Center) {
+                        Icon(Icons.AutoMirrored.Filled.TrendingUp, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+                    }
+                    Icon(Icons.Default.MoreHoriz, null, tint = Color.White)
+                }
+                Column {
+                    Text("Total Expense", color = Color.White.copy(alpha=0.7f), style = MaterialTheme.typography.bodySmall)
+                    Text(CurrencyFormatter.formatCurrency(mockupExpense, currency), color = Color.White, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ExpensesCategoryItem(categoryInfo: CategoryData, currency: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Icon Background
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color(0xFFF0F0F0)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(CategoryMapping.categories[categoryInfo.name]?.icon ?: Icons.Default.Category, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+            }
+            
+            Column {
+                Text(
+                    text = categoryInfo.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                // Mock Subtitle
+                Text(
+                    text = "Budget $ 900",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.Gray
+                )
+            }
+        }
+
+        Column(horizontalAlignment = Alignment.End) {
+            Text(
+                text = "-${CurrencyFormatter.formatCurrency(categoryInfo.amount, currency)}",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            // Minimal Linear Progress Bar
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                LinearProgressIndicator(
+                    progress = { 0.65f }, // mock progress
+                    modifier = Modifier.width(60.dp).height(4.dp).clip(RoundedCornerShape(2.dp)),
+                    color = MaterialTheme.colorScheme.secondary,
+                    trackColor = Color.LightGray.copy(alpha=0.3f)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("65%", style = MaterialTheme.typography.bodySmall, color = Color.Gray, fontSize = 10.sp)
+            }
         }
     }
 }

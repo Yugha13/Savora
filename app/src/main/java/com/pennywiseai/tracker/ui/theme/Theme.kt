@@ -100,7 +100,7 @@ val ColorScheme.expense: Color
 
 @Composable
 fun SavoraTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    darkTheme: Boolean = false, // Explicitly enforce light mode per user request
     // Disabled dynamic color so standard Orange/Purple theme applies
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
@@ -108,10 +108,9 @@ fun SavoraTheme(
     val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+            dynamicLightColorScheme(context) // Always use light if dynamic
         }
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
+        else -> LightColorScheme // Always use LightColorScheme
     }
 
     val view = LocalView.current

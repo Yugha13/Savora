@@ -1,13 +1,15 @@
 package com.pennywiseai.tracker.presentation.navigation
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Chat
-import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.filled.Analytics
+import androidx.compose.material.icons.filled.AccountBalanceWallet
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.outlined.Analytics
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.outlined.AccountBalanceWallet
+import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.automirrored.outlined.Chat
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.ui.graphics.vector.ImageVector
 
 sealed class BottomNavItem(
@@ -23,17 +25,31 @@ sealed class BottomNavItem(
         selectedIcon = Icons.Default.Home
     )
     
-    data object Analytics : BottomNavItem(
-        route = "analytics",
-        title = "Analytics",
-        icon = Icons.Outlined.Analytics,
-        selectedIcon = Icons.Default.Analytics
+    data object Expenses : BottomNavItem(
+        route = "expenses",
+        title = "Expenses",
+        icon = Icons.Outlined.AccountBalanceWallet,
+        selectedIcon = Icons.Default.AccountBalanceWallet
     )
     
-    data object Chat : BottomNavItem(
-        route = "chat",
-        title = "Chat",
-        icon = Icons.AutoMirrored.Outlined.Chat,
-        selectedIcon = Icons.AutoMirrored.Filled.Chat
+    data object Add : BottomNavItem(
+        route = "add",
+        title = "Add",
+        icon = Icons.Default.Add,
+        selectedIcon = Icons.Default.Add
+    )
+    
+    data object Calendar : BottomNavItem(
+        route = "calendar",
+        title = "Calendar",
+        icon = Icons.Outlined.CalendarMonth,
+        selectedIcon = Icons.Default.CalendarMonth
+    )
+    
+    data object Profile : BottomNavItem(
+        route = "profile",
+        title = "Profile",
+        icon = Icons.Outlined.Person,
+        selectedIcon = Icons.Default.Person
     )
 }

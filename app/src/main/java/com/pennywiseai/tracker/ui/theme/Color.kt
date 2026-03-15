@@ -2,35 +2,35 @@ package com.pennywiseai.tracker.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Light Theme Colors - Purple Theme
-val md_theme_light_primary = Color(0xFF6200EE)  // Deep Purple
+// Light Theme Colors - Modern Purple & Orange Theme
+val md_theme_light_primary = Color(0xFF7B3DFF)  // Vibrant Purple
 val md_theme_light_onPrimary = Color(0xFFFFFFFF)  // White on purple
-val md_theme_light_primaryContainer = Color(0xFFEADDFF)  // Light purple container
-val md_theme_light_onPrimaryContainer = Color(0xFF21005D)  // Very dark purple text
-val md_theme_light_secondary = Color(0xFF625B71)  // Secondary purple-grey
-val md_theme_light_onSecondary = Color(0xFFFFFFFF)  // White on secondary
-val md_theme_light_secondaryContainer = Color(0xFFE8DEF8)  // Light purple-grey container
-val md_theme_light_onSecondaryContainer = Color(0xFF1D192B)  // Dark purple-grey text
-val md_theme_light_tertiary = Color(0xFF7D5260)  // Pinkish-purple
-val md_theme_light_onTertiary = Color(0xFFFFFFFF)  // White on tertiary
-val md_theme_light_tertiaryContainer = Color(0xFFFFD8E4)  // Light pinkish container
-val md_theme_light_onTertiaryContainer = Color(0xFF31111D)  // Dark pink text
+val md_theme_light_primaryContainer = Color(0xFFEADDFF)
+val md_theme_light_onPrimaryContainer = Color(0xFF21005D)
+val md_theme_light_secondary = Color(0xFFFF6D4D)  // Vibrant Orange
+val md_theme_light_onSecondary = Color(0xFFFFFFFF)
+val md_theme_light_secondaryContainer = Color(0xFFFFE5DE)
+val md_theme_light_onSecondaryContainer = Color(0xFF3E1100)
+val md_theme_light_tertiary = Color(0xFF2E3142)  // Dark Blue/Grey (Card)
+val md_theme_light_onTertiary = Color(0xFFFFFFFF)
+val md_theme_light_tertiaryContainer = Color(0xFFE4E8F1)
+val md_theme_light_onTertiaryContainer = Color(0xFF161823)
 val md_theme_light_error = Color(0xFFB3261E)
 val md_theme_light_onError = Color(0xFFFFFFFF)
 val md_theme_light_errorContainer = Color(0xFFFFDAD6)
 val md_theme_light_onErrorContainer = Color(0xFF410002)
 val md_theme_light_outline = Color(0xFF79747E)
-val md_theme_light_background = Color(0xFFFFFFFF)  // Pure white background
-val md_theme_light_onBackground = Color(0xFF1C1B1F)
-val md_theme_light_surface = Color(0xFFFAFAFA)  // Very light gray for cards
-val md_theme_light_onSurface = Color(0xFF1C1B1F)
-val md_theme_light_surfaceVariant = Color(0xFFF5F5F5)  // Light gray for secondary cards
-val md_theme_light_onSurfaceVariant = Color(0xFF49454F)
-val md_theme_light_inverseSurface = Color(0xFF313033)
+val md_theme_light_background = Color(0xFFF7F7F9)  // Very light grey background
+val md_theme_light_onBackground = Color(0xFF1E1F24) // Dark grey/black for text
+val md_theme_light_surface = Color(0xFFFFFFFF)  // Pure white for cards
+val md_theme_light_onSurface = Color(0xFF1E1F24)
+val md_theme_light_surfaceVariant = Color(0xFFF5F6F8)  // Light gray for secondary cards
+val md_theme_light_onSurfaceVariant = Color(0xFFA0A5BA) // Light grey text
+val md_theme_light_inverseSurface = Color(0xFF2E3142)
 val md_theme_light_inverseOnSurface = Color(0xFFF4EFF4)
-val md_theme_light_inversePrimary = Color(0xFFD0BCFF)  // Light purple
-val md_theme_light_surfaceTint = Color(0xFF6200EE)  // Updated primary purple
-val md_theme_light_outlineVariant = Color(0xFFCAC4D0)
+val md_theme_light_inversePrimary = Color(0xFFD0BCFF)
+val md_theme_light_surfaceTint = Color(0xFF7B3DFF)
+val md_theme_light_outlineVariant = Color(0xFFE2E4EA)
 val md_theme_light_scrim = Color(0xFF000000)
 
 // Dark Theme Colors - Purple Theme

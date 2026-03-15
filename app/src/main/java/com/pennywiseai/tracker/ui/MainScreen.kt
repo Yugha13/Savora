@@ -97,36 +97,38 @@ fun MainScreen(
                 onDismiss = { mainViewModel.dismissWhatsNew() }
             )
         }
-            Scaffold(
+        Scaffold(
             topBar = {
-            val context = LocalContext.current
-            SavoraTopAppBar(
-                title = when (baseRoute) {
-                    "home" -> "Savora"
-                    "transactions" -> "Transactions"
-                    "subscriptions" -> "Subscriptions"
-                    "analytics" -> "Analytics"
-                    "chat" -> "Savora"
-                    "settings" -> "Settings"
-                    "categories" -> "Categories"
-                    "unrecognized_sms" -> "Unrecognized Messages"
-                    "manage_accounts" -> "Manage Accounts"
-                    "add_account" -> "Add Account"
-                    "faq" -> "Help & FAQ"
-                    else -> "Savora"
-                },
-                showBackButton = baseRoute in listOf("chat", "settings", "subscriptions", "transactions", "categories", "unrecognized_sms", "manage_accounts", "add_account", "faq"),
-                showSettingsButton = baseRoute !in listOf("chat", "settings", "categories", "unrecognized_sms", "manage_accounts", "add_account", "faq"),
-                showDiscordButton = baseRoute !in listOf("settings", "categories", "unrecognized_sms", "manage_accounts", "add_account", "faq"), // Hide on these screens
-                onBackClick = { navController.popBackStack() },
-                onSettingsClick = { navController.navigate("settings") },
-                onDiscordClick = {
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://discord.gg/H3xWeMWjKQ"))
-                    context.startActivity(intent)
+                if (baseRoute !in listOf("home", "analytics", "expenses", "transactions")) {
+                    val context = LocalContext.current
+                    SavoraTopAppBar(
+                        title = when (baseRoute) {
+                            "home" -> "Savora"
+                            "transactions" -> "Transactions"
+                            "subscriptions" -> "Subscriptions"
+                            "analytics" -> "Analytics"
+                            "chat" -> "Savora"
+                            "settings" -> "Settings"
+                            "categories" -> "Categories"
+                            "unrecognized_sms" -> "Unrecognized Messages"
+                            "manage_accounts" -> "Manage Accounts"
+                            "add_account" -> "Add Account"
+                            "faq" -> "Help & FAQ"
+                            else -> "Savora"
+                        },
+                        showBackButton = baseRoute in listOf("chat", "settings", "subscriptions", "transactions", "categories", "unrecognized_sms", "manage_accounts", "add_account", "faq"),
+                        showSettingsButton = baseRoute !in listOf("chat", "settings", "categories", "unrecognized_sms", "manage_accounts", "add_account", "faq"),
+                        showDiscordButton = baseRoute !in listOf("settings", "categories", "unrecognized_sms", "manage_accounts", "add_account", "faq"), // Hide on these screens
+                        onBackClick = { navController.popBackStack() },
+                        onSettingsClick = { navController.navigate("settings") },
+                        onDiscordClick = {
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://discord.gg/H3xWeMWjKQ"))
+                            context.startActivity(intent)
+                        }
+                    )
                 }
-            )
-        }
-    ) { paddingValues ->
+            }
+        ) { paddingValues ->
         NavHost(
             navController = navController,
             startDestination = "home",
@@ -404,14 +406,19 @@ fun MainScreen(
     }
     
     // Floating Bottom Navigation
-    if (baseRoute in listOf("home", "analytics")) {
+    if (baseRoute in listOf("home", "analytics", "settings")) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .imePadding(),
             contentAlignment = Alignment.BottomCenter
         ) {
-            SavoraBottomNavigation(navController = navController)
+            SavoraBottomNavigation(
+                navController = navController,
+                onAddClick = {
+                    rootNavController?.navigate(com.pennywiseai.tracker.navigation.AddTransaction)
+                }
+            )
         }
     }
 }

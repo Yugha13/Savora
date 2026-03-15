@@ -9,6 +9,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -17,9 +18,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -31,6 +34,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.compose.material.icons.Icons
@@ -43,8 +47,13 @@ import androidx.compose.material.icons.filled.CurrencyExchange
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sync
-import androidx.compose.material.icons.filled.SwapHoriz
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.Wallet
+import androidx.compose.material.icons.filled.NotificationsNone
+import androidx.compose.material.icons.filled.MoreHoriz
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.automirrored.filled.ShowChart
 import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.automirrored.filled.TrendingDown
@@ -172,7 +181,8 @@ fun HomeScreen(
     }
     
     Scaffold(
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { paddingValues ->
     Box(modifier = Modifier
         .fillMaxSize()
@@ -187,57 +197,32 @@ fun HomeScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(Spacing.md)
         ) {
-            // Transaction Summary Cards with HorizontalPager
+            // 1. Custom Top Header (Profile, Home, Bell)
             item {
-                TransactionSummaryCards(
-                    uiState = uiState,
-                    onCurrencySelected = { viewModel.selectCurrency(it) },
-                    onTypeClick = onTransactionTypeClick
+                HomeTopHeader()
+            }
+            
+            // 2. Main ATM Card (Expense of this month, Last 4 digits, Bank Name)
+            item {
+                val expenseThisMonth = uiState.currentMonthExpenses
+                val currency = uiState.selectedCurrency
+                
+                // Get a representative bank name and last 4 if available
+                val firstAccount = uiState.accountBalances.firstOrNull()
+                val bankName = firstAccount?.bankName ?: "Savora Bank"
+                val last4 = firstAccount?.accountLast4 ?: "1965"
+                
+                MainAtmCard(
+                    expenseThisMonth = expenseThisMonth,
+                    currency = currency,
+                    bankName = bankName,
+                    last4Digits = last4
                 )
             }
             
-            // Unified Accounts Section (Credit Cards + Bank Accounts)
-            if (uiState.creditCards.isNotEmpty() || uiState.accountBalances.isNotEmpty()) {
-                item {
-                    UnifiedAccountsCard(
-                        creditCards = uiState.creditCards,
-                        bankAccounts = uiState.accountBalances,
-                        totalBalance = uiState.totalBalance,
-                        totalAvailableCredit = uiState.totalAvailableCredit,
-                        selectedCurrency = uiState.selectedCurrency,
-                        onAccountClick = { bankName, accountLast4 ->
-                            navController.navigate(
-                                com.pennywiseai.tracker.navigation.AccountDetail(
-                                    bankName = bankName,
-                                    accountLast4 = accountLast4
-                                )
-                            )
-                        }
-                    )
-                }
-            }
-
-            // Budget Summary Card
-            uiState.budgetSummary?.let { summary ->
-                item {
-                    BudgetSummaryHomeCard(
-                        summary = summary,
-                        currency = uiState.selectedCurrency,
-                        onClick = onNavigateToBudgets
-                    )
-                }
-            }
-
-            // Upcoming Subscriptions Alert
-            if (uiState.upcomingSubscriptions.isNotEmpty()) {
-                item {
-                    UpcomingSubscriptionsCard(
-                        subscriptions = uiState.upcomingSubscriptions,
-                        totalAmount = uiState.upcomingSubscriptionsTotal,
-                        currency = uiState.selectedCurrency,
-                        onClick = onNavigateToSubscriptions
-                    )
-                }
+            // 3. Analytics Bar Chart
+            item {
+                AnalyticsBarChart()
             }
             
             // Recent Transactions Section
@@ -347,72 +332,6 @@ fun HomeScreen(
             }
         }
         
-        // FABs - Direct access (no speed dial)
-        Column(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(Dimensions.Padding.content),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            horizontalAlignment = Alignment.End
-        ) {
-            // Add FAB (top, small)
-            SmallFloatingActionButton(
-                onClick = onNavigateToAddScreen,
-                containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Add Transaction or Subscription"
-                )
-            }
-            
-            // Sync FAB (bottom, primary)
-            // Single tap: incremental scan, Long press: full resync
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Surface(
-                    modifier = Modifier
-                        .spotlightTarget(onFabPositioned)
-                        .size(56.dp)
-                        .pointerInput(Unit) {
-                            detectTapGestures(
-                                onTap = { viewModel.scanSmsMessages() },
-                                onLongPress = {
-                                    // Haptic feedback for long press
-                                    view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
-                                    showFullResyncDialog = true
-                                }
-                            )
-                        },
-                    shape = FloatingActionButtonDefaults.shape,
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    shadowElevation = 6.dp
-                ) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Sync,
-                            contentDescription = "Sync SMS (long press for full resync)"
-                        )
-                    }
-                }
-                // Hint for long-press functionality - only show for new users (no transactions yet)
-                if (uiState.recentTransactions.isEmpty() && !uiState.isLoading) {
-                    Text(
-                        text = "Hold for full resync",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                    )
-                }
-            }
-        }
-        
         // Full Resync Confirmation Dialog
         if (showFullResyncDialog) {
             AlertDialog(
@@ -488,51 +407,72 @@ private fun SimpleTransactionItem(
     onClick: () -> Unit = {}
 ) {
     val amountColor = when (transaction.transactionType) {
-        TransactionType.INCOME -> if (!isSystemInDarkTheme()) income_light else income_dark
-        TransactionType.EXPENSE -> if (!isSystemInDarkTheme()) expense_light else expense_dark
-        TransactionType.CREDIT -> if (!isSystemInDarkTheme()) credit_light else credit_dark
-        TransactionType.TRANSFER -> if (!isSystemInDarkTheme()) transfer_light else transfer_dark
-        TransactionType.INVESTMENT -> if (!isSystemInDarkTheme()) investment_light else investment_dark
+        TransactionType.INCOME -> MaterialTheme.colorScheme.primary // Purple or Green based on mockup, let's use primary for positive or primary green
+        else -> MaterialTheme.colorScheme.onBackground
     }
+    
+    val displayAmountColor = if (transaction.transactionType == TransactionType.INCOME) Color(0xFF4CAF50) else MaterialTheme.colorScheme.onBackground
 
-    val dateTimeFormatter = DateTimeFormatter.ofPattern("MMM d • h:mm a")
+    val dateTimeFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
     val dateTimeText = transaction.dateTime.format(dateTimeFormatter)
 
-    ListItemCard(
-        title = transaction.merchantName,
-        subtitle = dateTimeText,
-        amount = if (convertedAmount != null && displayCurrency != null) {
-            CurrencyFormatter.formatCurrency(convertedAmount, displayCurrency)
-        } else {
-            transaction.formatAmount()
-        },
-        amountColor = amountColor,
-        onClick = onClick,
-        leadingContent = {
-            BrandIcon(
-                merchantName = transaction.merchantName,
-                size = 40.dp,
-                showBackground = true
-            )
-        },
-        trailingContent = if (convertedAmount != null && displayCurrency != null) {
-            {
-                Column(horizontalAlignment = Alignment.End) {
-                    Text(
-                        text = CurrencyFormatter.formatCurrency(convertedAmount, displayCurrency),
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.SemiBold,
-                        color = amountColor
-                    )
-                    Text(
-                        text = "(${transaction.formatAmount()})",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 12.dp, horizontal = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Icon Background
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color(0xFFF0F0F0)),
+                contentAlignment = Alignment.Center
+            ) {
+                BrandIcon(
+                    merchantName = transaction.merchantName,
+                    size = 28.dp,
+                    showBackground = false
+                )
             }
-        } else null
-    )
+            
+            Column {
+                Text(
+                    text = transaction.merchantName,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = dateTimeText,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.Gray
+                )
+            }
+        }
+
+        Column(horizontalAlignment = Alignment.End) {
+            val amountStr = if (convertedAmount != null && displayCurrency != null) {
+                CurrencyFormatter.formatCurrency(convertedAmount, displayCurrency)
+            } else {
+                transaction.formatAmount()
+            }
+            Text(
+                text = "${if (transaction.transactionType == TransactionType.INCOME) "+" else ""}$amountStr",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = displayAmountColor
+            )
+        }
+    }
 }
 
 @Composable
@@ -1266,6 +1206,188 @@ private fun BudgetSummaryHomeCard(
                     fontWeight = FontWeight.Medium,
                     color = savingsColor
                 )
+            }
+        }
+    }
+}
+
+@Composable
+fun HomeTopHeader() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 24.dp, top = 16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Profile Pic
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(Color(0xFFE8E5FA)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(Icons.Default.Person, contentDescription = "Profile", tint = MaterialTheme.colorScheme.primary)
+        }
+        
+        Text(
+            text = "Home",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onBackground
+        )
+        
+        Box(
+            contentAlignment = Alignment.TopEnd
+        ) {
+            Icon(
+                imageVector = Icons.Default.NotificationsNone,
+                contentDescription = "Notifications",
+                modifier = Modifier.size(28.dp),
+                tint = MaterialTheme.colorScheme.onBackground
+            )
+            // Red dot
+            Box(
+                modifier = Modifier
+                    .size(10.dp)
+                    .clip(CircleShape)
+                    .background(Color.Red)
+                    .offset(x = (-2).dp, y = 2.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun MainAtmCard(
+    expenseThisMonth: BigDecimal,
+    currency: String,
+    bankName: String,
+    last4Digits: String
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(220.dp),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF2E3142)) // Dark Color
+    ) {
+        Box(modifier = Modifier.fillMaxSize().padding(24.dp)) {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Expense of this month",
+                        color = Color.White.copy(alpha = 0.7f),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Icon(
+                        imageVector = Icons.Default.MoreHoriz,
+                        contentDescription = "More",
+                        tint = Color.White
+                    )
+                }
+                
+                Text(
+                    text = CurrencyFormatter.formatCurrency(expenseThisMonth, currency),
+                    color = Color.White,
+                    style = MaterialTheme.typography.headlineLarge,
+                    fontWeight = FontWeight.Bold
+                )
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.Bottom
+                ) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                        Text("**** **** ****", color = Color.White.copy(alpha = 0.7f))
+                        Text(last4Digits, color = Color.White, fontWeight = FontWeight.SemiBold)
+                    }
+                    Text(bankName, color = Color.White, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun AnalyticsBarChart() {
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Analytics",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+            
+            // Year Dropdown
+            Surface(
+                color = MaterialTheme.colorScheme.secondary, // Orange
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Year - 2022", color = Color.White, fontWeight = FontWeight.Medium, style = MaterialTheme.typography.bodySmall)
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Icon(Icons.Default.KeyboardArrowDown, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+                }
+            }
+        }
+        
+        // Bar Chart
+        Row(
+            modifier = Modifier.fillMaxWidth().height(160.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Bottom
+        ) {
+            val months = listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul")
+            val amounts = listOf("$1,494", "$1,664", "$1,544", "$2,972", "$2,484", "$2,364", "$3,894")
+            val heights = listOf(0.4f, 0.5f, 0.45f, 0.8f, 0.6f, 0.55f, 0.9f)
+            
+            months.forEachIndexed { index, month ->
+                val isActive = month == "Apr"
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Bottom,
+                    modifier = Modifier.fillMaxHeight()
+                ) {
+                    Text(
+                        text = amounts[index],
+                        style = MaterialTheme.typography.labelSmall,
+                        color = if (isActive) MaterialTheme.colorScheme.primary else Color.Gray.copy(alpha=0.5f),
+                        fontSize = 10.sp
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Box(
+                        modifier = Modifier
+                            .width(28.dp)
+                            .fillMaxHeight(heights[index])
+                            .clip(RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp))
+                            .background(if (isActive) MaterialTheme.colorScheme.primary else Color.LightGray.copy(alpha=0.3f))
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = month,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = if (isActive) MaterialTheme.colorScheme.onBackground else Color.Gray
+                    )
+                }
             }
         }
     }

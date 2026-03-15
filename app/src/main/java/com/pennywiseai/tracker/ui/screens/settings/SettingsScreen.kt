@@ -104,7 +104,12 @@ fun SettingsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(Dimensions.Padding.content),
+                .padding(
+                    start = Dimensions.Padding.content,
+                    end = Dimensions.Padding.content,
+                    top = Dimensions.Padding.content,
+                    bottom = Dimensions.Padding.content + 100.dp
+                ),
             verticalArrangement = Arrangement.spacedBy(Spacing.md)
         ) {
             // Theme Settings Section
