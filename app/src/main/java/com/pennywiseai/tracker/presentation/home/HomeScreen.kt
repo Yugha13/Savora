@@ -234,38 +234,6 @@ fun HomeScreen(
                 )
             }
             
-            // Floating Refresh Button (Above Bottom Nav FAB)
-            item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 100.dp, end = 24.dp), // Positioned above the right FAB
-                    contentAlignment = Alignment.BottomEnd
-                ) {
-                    Surface(
-                        modifier = Modifier
-                            .size(48.dp)
-                            .clip(CircleShape)
-                            .clickable {
-                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                viewModel.scanSmsMessages()
-                            },
-                        color = Color.Black.copy(alpha = 0.8f),
-                        shape = CircleShape,
-                        shadowElevation = 4.dp
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                imageVector = Icons.Default.Sync,
-                                contentDescription = "Refresh",
-                                tint = Color.White,
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
-                    }
-                }
-            }
-            
             // Recent Transactions Section
             item {
                 Spacer(modifier = Modifier.height(Spacing.xs))
@@ -368,6 +336,36 @@ fun HomeScreen(
                         convertedAmount = uiState.recentTransactionConvertedAmounts[transaction.id],
                         displayCurrency = if (uiState.isUnifiedMode) uiState.selectedCurrency else null,
                         onClick = { onTransactionClick(transaction.id) }
+                    )
+                }
+            }
+        }
+
+        // Floating Refresh Button (Fixed Position above Bottom Nav FAB)
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = 110.dp, end = 24.dp), // Positioned above the right FAB
+            contentAlignment = Alignment.BottomEnd
+        ) {
+            Surface(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .clickable {
+                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        viewModel.scanSmsMessages()
+                    },
+                color = Color.Black.copy(alpha = 0.8f),
+                shape = CircleShape,
+                shadowElevation = 4.dp
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = Icons.Default.Sync,
+                        contentDescription = "Refresh",
+                        tint = Color.White,
+                        modifier = Modifier.size(24.dp)
                     )
                 }
             }
