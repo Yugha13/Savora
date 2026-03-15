@@ -301,6 +301,38 @@ class HomeViewModel @Inject constructor(
                 )
             }
         }
+
+        viewModelScope.launch {
+            // Load current year transactions for the Analytics chart
+            val now = LocalDate.now()
+            val startOfYear = now.withDayOfYear(1)
+            val endOfYear = now.withDayOfYear(now.lengthOfYear())
+            
+            combine(
+                transactionRepository.getTransactionsBetweenDates(startOfYear, endOfYear),
+                userPreferencesRepository.unifiedCurrencyMode,
+                userPreferencesRepository.displayCurrency
+            ) { transactions, isUnified, displayCurrency ->
+                Triple(transactions, isUnified, displayCurrency)
+            }.collect { (transactions, isUnified, displayCurrency) ->
+                val monthlyTotals = MutableList(12) { BigDecimal.ZERO }
+                val selectedCurrency = _uiState.value.selectedCurrency
+                
+                for (tx in transactions) {
+                    if (tx.transactionType == TransactionType.EXPENSE) {
+                        val amount = if (isUnified) {
+                            currencyConversionService.convertAmount(tx.amount, tx.currency, displayCurrency) ?: tx.amount
+                        } else {
+                            if (tx.currency == selectedCurrency) tx.amount else BigDecimal.ZERO
+                        }
+                        val monthIndex = tx.dateTime.monthValue - 1 // 0-indexed month
+                        monthlyTotals[monthIndex] = monthlyTotals[monthIndex] + amount
+                    }
+                }
+                
+                _uiState.value = _uiState.value.copy(currentYearMonthlyExpenses = monthlyTotals)
+            }
+        }
     }
     
     private fun calculateMonthlyChange() {
@@ -880,5 +912,6 @@ data class HomeUiState(
     val isLoading: Boolean = true,
     val isScanning: Boolean = false,
     val showBreakdownDialog: Boolean = false,
-    val isUnifiedMode: Boolean = false
+    val isUnifiedMode: Boolean = false,
+    val currentYearMonthlyExpenses: List<BigDecimal> = List(12) { BigDecimal.ZERO }
 )

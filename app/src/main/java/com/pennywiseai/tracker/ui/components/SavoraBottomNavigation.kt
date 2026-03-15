@@ -29,108 +29,93 @@ fun SavoraBottomNavigation(
     navController: NavController,
     onAddClick: () -> Unit = {}
 ) {
-    val items = listOf(
-        BottomNavItem.Home,
-        BottomNavItem.Expenses,
-        BottomNavItem.Add,
-        BottomNavItem.Calendar,
-        BottomNavItem.Profile
-    )
-    
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route?.substringBefore("?")
     
-    val containerColor = MaterialTheme.colorScheme.surface
-    val activeColor = MaterialTheme.colorScheme.secondary // Orange
-    val inactiveColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+    val items = listOf(
+        BottomNavItem.Home,
+        BottomNavItem.Analytics,
+        BottomNavItem.Chatbot
+    )
     
     val haptic = LocalHapticFeedback.current
     
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp)
-            .padding(bottom = 24.dp),
+            .padding(bottom = 24.dp, start = 24.dp, end = 24.dp)
+            .navigationBarsPadding(),
         contentAlignment = Alignment.BottomCenter
     ) {
-        // Main Nav Bar Background
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .shadow(16.dp, RoundedCornerShape(32.dp), spotColor = Color.Black.copy(alpha = 0.05f))
-                .clip(RoundedCornerShape(32.dp))
-                .background(containerColor)
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            items.forEach { item ->
-                val isSelected = currentRoute == item.route || 
-                    (currentRoute == "analytics" && item == BottomNavItem.Expenses) ||
-                    (currentRoute == "settings" && item == BottomNavItem.Profile)
-                
-                if (item == BottomNavItem.Add) {
-                    // Center Add button is drawn via overlay to overlap properly if needed,
-                    // but we can put a spacer or handle it here.
-                    // Let's just create an empty space of its size here so layout is correct.
-                    Spacer(modifier = Modifier.width(48.dp))
-                } else {
-                    Box(
-                        modifier = Modifier
-                            .clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null,
-                                onClick = {
+            // Left Side: Navigation Pill
+            Surface(
+                color = Color.Black,
+                shape = RoundedCornerShape(40.dp),
+                shadowElevation = 8.dp
+            ) {
+                Row(
+                    modifier = Modifier.padding(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    items.forEach { item ->
+                        val isSelected = currentRoute == item.route
+                        
+                        Box(
+                            modifier = Modifier
+                                .size(56.dp)
+                                .clip(CircleShape)
+                                .background(if (isSelected) Color.White else Color.Transparent)
+                                .clickable {
                                     if (!isSelected) {
                                         haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                        // mapped special navigation or standard route
-                                        val routeToNav = when (item) {
-                                            BottomNavItem.Expenses -> "analytics"
-                                            BottomNavItem.Profile -> "settings"
-                                            else -> item.route
-                                        }
-                                        navController.navigate(routeToNav) {
+                                        navController.navigate(item.route) {
                                             popUpTo(navController.graph.startDestinationId) { saveState = true }
                                             launchSingleTop = true
                                             restoreState = true
                                         }
                                     }
-                                }
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = if (isSelected) item.selectedIcon else item.icon,
+                                contentDescription = item.title,
+                                tint = if (isSelected) Color.Black else Color.White.copy(alpha = 0.6f),
+                                modifier = Modifier.size(24.dp)
                             )
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = if (isSelected) item.selectedIcon else item.icon,
-                            contentDescription = item.title,
-                            tint = if (isSelected) activeColor else inactiveColor,
-                            modifier = Modifier.size(26.dp)
-                        )
+                        }
                     }
                 }
             }
-        }
-        
-        // Central Add Button Overlay
-        Box(
-            modifier = Modifier
-                .offset(y = (-20).dp) // Pop it slightly above the bar
-                .size(56.dp)
-                .shadow(8.dp, CircleShape, spotColor = activeColor.copy(alpha = 0.5f))
-                .clip(CircleShape)
-                .background(activeColor)
-                .clickable {
-                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                    onAddClick()
-                },
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = BottomNavItem.Add.icon,
-                contentDescription = BottomNavItem.Add.title,
-                tint = Color.White,
-                modifier = Modifier.size(28.dp)
-            )
+            
+            // Right Side: Add Button Circle
+            Surface(
+                modifier = Modifier
+                    .size(72.dp)
+                    .clip(CircleShape)
+                    .clickable {
+                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        onAddClick()
+                    },
+                color = Color.Black,
+                shape = CircleShape,
+                shadowElevation = 8.dp
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = BottomNavItem.Add.icon,
+                        contentDescription = "Add",
+                        tint = Color.White,
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
+            }
         }
     }
 }

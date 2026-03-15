@@ -31,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -60,6 +61,8 @@ import androidx.compose.material.icons.automirrored.filled.TrendingDown
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import android.view.HapticFeedbackConstants
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalView
@@ -123,6 +126,7 @@ fun HomeScreen(
 
     // Haptic feedback
     val view = LocalView.current
+    val haptic = LocalHapticFeedback.current
 
     // Currency dropdown state
       
@@ -199,7 +203,9 @@ fun HomeScreen(
         ) {
             // 1. Custom Top Header (Profile, Home, Bell)
             item {
-                HomeTopHeader()
+                HomeTopHeader(
+                    onRefreshClick = { viewModel.scanSmsMessages() }
+                )
             }
             
             // 2. Main ATM Card (Expense of this month, Last 4 digits, Bank Name)
@@ -222,7 +228,42 @@ fun HomeScreen(
             
             // 3. Analytics Bar Chart
             item {
-                AnalyticsBarChart()
+                AnalyticsBarChart(
+                    monthlyExpenses = uiState.currentYearMonthlyExpenses,
+                    currency = uiState.selectedCurrency
+                )
+            }
+            
+            // Floating Refresh Button (Above Bottom Nav FAB)
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 100.dp, end = 24.dp), // Positioned above the right FAB
+                    contentAlignment = Alignment.BottomEnd
+                ) {
+                    Surface(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(CircleShape)
+                            .clickable {
+                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                viewModel.scanSmsMessages()
+                            },
+                        color = Color.Black.copy(alpha = 0.8f),
+                        shape = CircleShape,
+                        shadowElevation = 4.dp
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Default.Sync,
+                                contentDescription = "Refresh",
+                                tint = Color.White,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    }
+                }
             }
             
             // Recent Transactions Section
@@ -1212,11 +1253,14 @@ private fun BudgetSummaryHomeCard(
 }
 
 @Composable
-fun HomeTopHeader() {
+fun HomeTopHeader(
+    onRefreshClick: () -> Unit = {}
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 24.dp, top = 16.dp),
+            .statusBarsPadding()
+            .padding(bottom = 24.dp, top = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -1238,23 +1282,40 @@ fun HomeTopHeader() {
             color = MaterialTheme.colorScheme.onBackground
         )
         
-        Box(
-            contentAlignment = Alignment.TopEnd
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = Icons.Default.NotificationsNone,
-                contentDescription = "Notifications",
-                modifier = Modifier.size(28.dp),
-                tint = MaterialTheme.colorScheme.onBackground
-            )
-            // Red dot
+            IconButton(
+                onClick = onRefreshClick,
+                modifier = Modifier.size(32.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Sync,
+                    contentDescription = "Sync SMS",
+                    tint = MaterialTheme.colorScheme.onBackground
+                )
+            }
+            
             Box(
-                modifier = Modifier
-                    .size(10.dp)
-                    .clip(CircleShape)
-                    .background(Color.Red)
-                    .offset(x = (-2).dp, y = 2.dp)
-            )
+                contentAlignment = Alignment.TopEnd,
+                modifier = Modifier.clickable { /* Handle Notifications */ }
+            ) {
+                Icon(
+                    imageVector = Icons.Default.NotificationsNone,
+                    contentDescription = "Notifications",
+                    modifier = Modifier.size(28.dp),
+                    tint = MaterialTheme.colorScheme.onBackground
+                )
+                // Red dot
+                Box(
+                    modifier = Modifier
+                        .size(10.dp)
+                        .clip(CircleShape)
+                        .background(Color.Red)
+                        .offset(x = (-2).dp, y = 2.dp)
+                )
+            }
         }
     }
 }
@@ -1266,51 +1327,94 @@ fun MainAtmCard(
     bankName: String,
     last4Digits: String
 ) {
+    val gradientBrush = Brush.linearGradient(
+        colors = listOf(Color(0xFF2E3142), Color(0xFF1E202C))
+    )
+    
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(220.dp),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF2E3142)) // Dark Color
+            .height(230.dp),
+        shape = RoundedCornerShape(28.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent)
     ) {
-        Box(modifier = Modifier.fillMaxSize().padding(24.dp)) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(gradientBrush)
+        ) {
+            // Decorative Abstract Abstract Waves / Circles
+            androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
+                drawCircle(
+                    color = Color(0xFF8544F1).copy(alpha = 0.15f), // Primary purple tint
+                    radius = size.width * 0.55f,
+                    center = androidx.compose.ui.geometry.Offset(size.width * 0.9f, -size.height * 0.2f)
+                )
+                drawCircle(
+                    color = Color(0xFFFF7043).copy(alpha = 0.08f), // Secondary orange tint
+                    radius = size.width * 0.4f,
+                    center = androidx.compose.ui.geometry.Offset(0f, size.height * 1.1f)
+                )
+            }
+            
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 28.dp, vertical = 24.dp),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         text = "Expense of this month",
-                        color = Color.White.copy(alpha = 0.7f),
-                        style = MaterialTheme.typography.bodyMedium
+                        color = Color.White.copy(alpha = 0.8f),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Medium
                     )
                     Icon(
                         imageVector = Icons.Default.MoreHoriz,
                         contentDescription = "More",
-                        tint = Color.White
+                        tint = Color.White.copy(alpha = 0.8f),
+                        modifier = Modifier.size(28.dp)
                     )
                 }
                 
-                Text(
-                    text = CurrencyFormatter.formatCurrency(expenseThisMonth, currency),
-                    color = Color.White,
-                    style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.Bold
-                )
+                Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
+                    Text(
+                        text = CurrencyFormatter.formatCurrency(expenseThisMonth, currency),
+                        color = Color.White,
+                        fontSize = 40.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = (-1).sp
+                    )
+                }
                 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.Bottom
                 ) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                        Text("**** **** ****", color = Color.White.copy(alpha = 0.7f))
-                        Text(last4Digits, color = Color.White, fontWeight = FontWeight.SemiBold)
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text(
+                            text = "**** **** **** $last4Digits", 
+                            color = Color.White.copy(alpha = 0.85f),
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Medium,
+                            letterSpacing = 2.sp
+                        )
                     }
-                    Text(bankName, color = Color.White, fontWeight = FontWeight.Bold)
+                    
+                    Text(
+                        text = bankName.uppercase(),
+                        color = Color.White.copy(alpha = 0.6f),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.sp
+                    )
                 }
             }
         }
@@ -1318,7 +1422,24 @@ fun MainAtmCard(
 }
 
 @Composable
-fun AnalyticsBarChart() {
+fun AnalyticsBarChart(
+    monthlyExpenses: List<BigDecimal>,
+    currency: String
+) {
+    var showFirstHalf by remember { mutableStateOf(LocalDate.now().monthValue <= 6) }
+    val currentYear = LocalDate.now().year
+    val currentMonth = LocalDate.now().monthValue
+    
+    val allMonths = listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+    
+    val displayRange = if (showFirstHalf) 0..5 else 6..11
+    val displayMonths = allMonths.slice(displayRange)
+    // Handle empty list case gracefully
+    val safeExpenses = if (monthlyExpenses.size == 12) monthlyExpenses else List(12) { BigDecimal.ZERO }
+    val displayData = safeExpenses.slice(displayRange)
+    
+    val maxExpense = displayData.maxOrNull()?.takeIf { it > BigDecimal.ZERO } ?: BigDecimal.ONE
+    
     Column(
         modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -1334,18 +1455,35 @@ fun AnalyticsBarChart() {
                 fontWeight = FontWeight.Bold
             )
             
-            // Year Dropdown
-            Surface(
-                color = MaterialTheme.colorScheme.secondary, // Orange
-                shape = RoundedCornerShape(12.dp)
+            // Year Dropdown / Controls
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                IconButton(
+                    onClick = { showFirstHalf = !showFirstHalf },
+                    modifier = Modifier.size(28.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceVariant)
                 ) {
-                    Text("Year - 2022", color = Color.White, fontWeight = FontWeight.Medium, style = MaterialTheme.typography.bodySmall)
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Icon(Icons.Default.KeyboardArrowDown, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+                    Icon(
+                        imageVector = if (showFirstHalf) Icons.AutoMirrored.Filled.KeyboardArrowRight else Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                        contentDescription = "Toggle Half",
+                        tint = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+                
+                Surface(
+                    color = MaterialTheme.colorScheme.secondary, // Orange
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Year - $currentYear", color = Color.White, fontWeight = FontWeight.Medium, style = MaterialTheme.typography.bodySmall)
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Icon(Icons.Default.KeyboardArrowDown, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+                    }
                 }
             }
         }
@@ -1356,19 +1494,22 @@ fun AnalyticsBarChart() {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.Bottom
         ) {
-            val months = listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul")
-            val amounts = listOf("$1,494", "$1,664", "$1,544", "$2,972", "$2,484", "$2,364", "$3,894")
-            val heights = listOf(0.4f, 0.5f, 0.45f, 0.8f, 0.6f, 0.55f, 0.9f)
-            
-            months.forEachIndexed { index, month ->
-                val isActive = month == "Apr"
+            displayMonths.forEachIndexed { index, month ->
+                val monthIndex = displayRange.first + index
+                val isActive = (monthIndex + 1) == currentMonth
+                
+                val amount = displayData[index]
+                val heightRatio = if (maxExpense > BigDecimal.ZERO) {
+                    (amount.toFloat() / maxExpense.toFloat()).coerceIn(0.1f, 1f)
+                } else 0.1f
+                
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Bottom,
                     modifier = Modifier.fillMaxHeight()
                 ) {
                     Text(
-                        text = amounts[index],
+                        text = if (amount > BigDecimal.ZERO) CurrencyFormatter.formatCurrency(amount, currency) else "",
                         style = MaterialTheme.typography.labelSmall,
                         color = if (isActive) MaterialTheme.colorScheme.primary else Color.Gray.copy(alpha=0.5f),
                         fontSize = 10.sp
@@ -1377,7 +1518,7 @@ fun AnalyticsBarChart() {
                     Box(
                         modifier = Modifier
                             .width(28.dp)
-                            .fillMaxHeight(heights[index])
+                            .fillMaxHeight(heightRatio)
                             .clip(RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp))
                             .background(if (isActive) MaterialTheme.colorScheme.primary else Color.LightGray.copy(alpha=0.3f))
                     )

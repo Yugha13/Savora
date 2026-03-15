@@ -10,6 +10,10 @@ import androidx.compose.material.icons.outlined.AccountBalanceWallet
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.ui.graphics.vector.ImageVector
 
 sealed class BottomNavItem(
@@ -51,5 +55,19 @@ sealed class BottomNavItem(
         title = "Profile",
         icon = Icons.Outlined.Person,
         selectedIcon = Icons.Default.Person
+    )
+
+    data object Analytics : BottomNavItem(
+        route = "analytics",
+        title = "Analytics",
+        icon = Icons.Outlined.BarChart,
+        selectedIcon = Icons.Default.BarChart
+    )
+
+    data object Chatbot : BottomNavItem(
+        route = "chat",
+        title = "Chatbot",
+        icon = Icons.Outlined.AutoAwesome,
+        selectedIcon = Icons.Default.AutoAwesome
     )
 }
