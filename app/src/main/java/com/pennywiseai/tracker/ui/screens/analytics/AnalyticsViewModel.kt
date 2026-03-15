@@ -45,6 +45,9 @@ class AnalyticsViewModel @Inject constructor(
     private val _isUnifiedMode = MutableStateFlow(false)
     val isUnifiedMode: StateFlow<Boolean> = _isUnifiedMode.asStateFlow()
 
+    private val _selectedCategory = MutableStateFlow<String?>(null)
+    val selectedCategory: StateFlow<String?> = _selectedCategory.asStateFlow()
+
     init {
         // Load unified mode preferences
         viewModelScope.launch {
@@ -88,9 +91,10 @@ class AnalyticsViewModel @Inject constructor(
         combine(_selectedPeriod, _selectedDate, customDateRange) { p, d, r -> Triple(p, d, r) },
         _transactionTypeFilter,
         _selectedCurrency,
-        _isUnifiedMode
-    ) { (period, selectedDate, customRange), typeFilter, currency, isUnified ->
-        FilterState(period, selectedDate, customRange, typeFilter, currency, isUnified)
+        _isUnifiedMode,
+        _selectedCategory
+    ) { (period, selectedDate, customRange), typeFilter, currency, isUnified, selectedCategory ->
+        FilterState(period, selectedDate, customRange, typeFilter, currency, isUnified, selectedCategory)
     }.flatMapLatest { filterState ->
         // Determine date range based on selected period
         // If period is THIS_MONTH, we actually want to show data for the selected date's month if provided
@@ -178,15 +182,33 @@ class AnalyticsViewModel @Inject constructor(
                     )
                 }
 
-                combine(transactionsFlow, budgetFlow) { txs, budget -> 
-                    Triple(txs, budget, dbTransactionType) 
+                // Load yearly transactions for yearly total
+                val yearlyRange = LocalDate.of(filterState.selectedDate.year, 1, 1) to LocalDate.of(filterState.selectedDate.year, 12, 31)
+                val yearlyFlow = if (filterState.isUnifiedMode) {
+                    transactionRepository.getTransactionsBetweenDates(yearlyRange.first, yearlyRange.second)
+                } else {
+                    transactionRepository.getTransactionsFiltered(yearlyRange.first, yearlyRange.second, filterState.currency)
                 }
-            }.mapLatest { (allTransactionsWithSplits, budgetSpending, transactionTypeFilter) ->
+
+                combine(transactionsFlow, budgetFlow, yearlyFlow) { txs, budget, yearlyTxs -> 
+                    val todayTxs = txs.filter { it.transaction.dateTime.toLocalDate().isEqual(filterState.selectedDate) }
+                    DataBundle(txs, budget, dbTransactionType, yearlyTxs, todayTxs) 
+                }
+            }.mapLatest { bundle ->
+                val (allTransactionsWithSplits, budgetSpending, transactionTypeFilter, yearlyTransactions, todayTransactions) = bundle
+                
                 // Filter by transaction type in memory (splits are already loaded)
                 val filteredTransactionsWithSplits = if (transactionTypeFilter != null) {
                     allTransactionsWithSplits.filter { it.transaction.transactionType == transactionTypeFilter }
                 } else {
                     allTransactionsWithSplits
+                }
+                
+                // Further filter categories if a specific one is selected
+                val finalTransactionsWithSplits = if (filterState.selectedCategory != null) {
+                    filteredTransactionsWithSplits.filter { it.transaction.category == filterState.selectedCategory }
+                } else {
+                    filteredTransactionsWithSplits
                 }
 
                 val allTransactions = allTransactionsWithSplits.map { it.transaction }
@@ -196,18 +218,39 @@ class AnalyticsViewModel @Inject constructor(
                 // Calculate UNFILTERED total — convert if unified mode
                 var unfilteredTotalSpending = BigDecimal.ZERO
                 if (filterState.isUnifiedMode) {
-                    for (tx in allTransactions) {
+                    for (tx in allTransactionsWithSplits.map { it.transaction }) {
                         unfilteredTotalSpending += currencyConversionService.convertAmount(tx.amount, tx.currency, displayCurrency)
                     }
                 } else {
-                    unfilteredTotalSpending = allTransactions.sumOf { it.amount.toDouble() }.toBigDecimal()
+                    unfilteredTotalSpending = allTransactionsWithSplits.sumOf { it.transaction.amount.toDouble() }.toBigDecimal()
+                }
+                
+                // Calculate Yearly total
+                var yearlyTotal = BigDecimal.ZERO
+                for (tx in yearlyTransactions.filter { it.transactionType == com.pennywiseai.tracker.data.database.entity.TransactionType.EXPENSE }) {
+                    yearlyTotal += if (filterState.isUnifiedMode) {
+                        currencyConversionService.convertAmount(tx.amount, tx.currency, displayCurrency)
+                    } else {
+                        tx.amount
+                    }
+                }
+                
+                // Calculate Today's total
+                var todayTotal = BigDecimal.ZERO
+                for (txWithSplits in todayTransactions.filter { it.transaction.transactionType == com.pennywiseai.tracker.data.database.entity.TransactionType.EXPENSE }) {
+                    val tx = txWithSplits.transaction
+                    todayTotal += if (filterState.isUnifiedMode) {
+                        currencyConversionService.convertAmount(tx.amount, tx.currency, displayCurrency)
+                    } else {
+                        tx.amount
+                    }
                 }
 
                 // Build category breakdown considering splits
                 val categoryAmounts = mutableMapOf<String, BigDecimal>()
                 val categoryTransactionCounts = mutableMapOf<String, Int>()
 
-                for (txWithSplits in filteredTransactionsWithSplits) {
+                for (txWithSplits in finalTransactionsWithSplits) {
                     val fromCurrency = txWithSplits.transaction.currency
                     txWithSplits.getAmountByCategory().forEach { (category, amount) ->
                         val categoryName = category.ifEmpty { "Others" }
@@ -273,6 +316,9 @@ class AnalyticsViewModel @Inject constructor(
                     totalSpending = unfilteredTotalSpending,
                     totalIncome = budgetSpending?.totalIncome ?: BigDecimal.ZERO,
                     totalLimit = budgetSpending?.totalLimit ?: BigDecimal.ZERO,
+                    yearlySpending = yearlyTotal,
+                    todaySpending = todayTotal,
+                    dailyTransactions = todayTransactions,
                     categoryBreakdown = categoryBreakdown,
                     topMerchants = merchantBreakdown,
                     transactionCount = allTransactions.size,
@@ -289,6 +335,10 @@ class AnalyticsViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = AnalyticsUiState(isLoading = true)
     )
+
+    fun setCategoryFilter(category: String?) {
+        _selectedCategory.value = category
+    }
 
     fun selectDate(date: LocalDate) {
         _selectedDate.value = date
@@ -355,13 +405,25 @@ private data class FilterState(
     val customRange: Pair<LocalDate, LocalDate>?,
     val typeFilter: TransactionTypeFilter,
     val currency: String,
-    val isUnifiedMode: Boolean = false
+    val isUnifiedMode: Boolean = false,
+    val selectedCategory: String? = null
+)
+
+private data class DataBundle(
+    val txs: List<TransactionWithSplits>,
+    val budget: com.pennywiseai.tracker.data.repository.MonthlyBudgetSpending?,
+    val typeFilter: com.pennywiseai.tracker.data.database.entity.TransactionType?,
+    val yearlyTxs: List<com.pennywiseai.tracker.data.database.entity.TransactionEntity>,
+    val todayTxs: List<TransactionWithSplits>
 )
 
 data class AnalyticsUiState(
     val totalSpending: BigDecimal = BigDecimal.ZERO,
     val totalIncome: BigDecimal = BigDecimal.ZERO,
     val totalLimit: BigDecimal = BigDecimal.ZERO,
+    val yearlySpending: BigDecimal = BigDecimal.ZERO,
+    val todaySpending: BigDecimal = BigDecimal.ZERO,
+    val dailyTransactions: List<TransactionWithSplits> = emptyList(),
     val categoryBreakdown: List<CategoryData> = emptyList(),
     val topMerchants: List<MerchantData> = emptyList(),
     val transactionCount: Int = 0,

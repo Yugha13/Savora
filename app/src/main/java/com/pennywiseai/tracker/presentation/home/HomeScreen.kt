@@ -596,7 +596,7 @@ private fun MonthSummaryCard(
 }
 
 @Composable
-private fun TransactionItem(
+fun TransactionItem(
     transaction: TransactionEntity,
     onClick: () -> Unit = {}
 ) {

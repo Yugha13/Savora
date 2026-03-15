@@ -52,6 +52,7 @@ import java.time.format.DateTimeFormatter
 fun AnalyticsScreen(
     viewModel: AnalyticsViewModel = hiltViewModel(),
     onNavigateToChat: () -> Unit = {},
+    onNavigateToDetail: () -> Unit = {},
     onNavigateToTransactions: (category: String?, merchant: String?, period: String?, currency: String?) -> Unit = { _, _, _, _ -> },
     onNavigateToHome: () -> Unit = {}
 ) {
@@ -97,22 +98,31 @@ fun AnalyticsScreen(
                 ExpensesTopHeader()
             }
             
-            // 2. Calendar Strip
+            // 2. Month Dropdown (Workable)
             item {
-                CalendarStrip(
+                MonthDropdown(
                     selectedDate = selectedDate,
-                    onDateSelected = { viewModel.selectDate(it) },
                     onPreviousMonth = { viewModel.previousMonth() },
                     onNextMonth = { viewModel.nextMonth() }
                 )
             }
             
-            // 3. Summary Cards (Total Salary, Total Expense)
+            // 3. Summary Cards (Total Expense - Yearly, Today Expense - Selected Day)
             item {
                 ExpensesSummaryCards(
-                    totalIncome = uiState.totalIncome,
-                    totalExpense = uiState.totalSpending,
-                    currency = uiState.currency
+                    todayExpense = uiState.todaySpending,
+                    yearlyExpense = uiState.yearlySpending,
+                    currency = uiState.currency,
+                    onTotalExpenseClick = onNavigateToDetail
+                )
+            }
+
+            // 4. Category Filter Row
+            item {
+                CategoryFilterRow(
+                    categories = listOf("All") + uiState.categoryBreakdown.map { it.name },
+                    selectedCategory = viewModel.selectedCategory.collectAsStateWithLifecycle().value ?: "All",
+                    onCategorySelected = { viewModel.setCategoryFilter(if (it == "All") null else it) }
                 )
             }
             
@@ -129,9 +139,17 @@ fun AnalyticsScreen(
                     ExpensesCategoryItem(categoryInfo = categoryInfo, currency = uiState.currency)
                 }
 
-                item {
-                    Spacer(modifier = Modifier.height(Spacing.lg))
-                    AnalyticsOverview(uiState = uiState)
+                if (uiState.dailyTransactions.isNotEmpty()) {
+                    item {
+                        Spacer(modifier = Modifier.height(Spacing.md))
+                        Text("Today's Transactions", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    }
+                    items(uiState.dailyTransactions) { txWithSplits ->
+                        com.pennywiseai.tracker.presentation.home.TransactionItem(
+                            transaction = txWithSplits.transaction,
+                            onClick = { /* Navigate to detail */ }
+                        )
+                    }
                 }
             } else if (!uiState.isLoading) {
                 // Empty state
@@ -511,13 +529,45 @@ fun ExpensesTopHeader() {
 }
 
 @Composable
+fun MonthDropdown(
+    selectedDate: LocalDate,
+    onPreviousMonth: () -> Unit,
+    onNextMonth: () -> Unit
+) {
+    val monthFormatter = DateTimeFormatter.ofPattern("MMMM yyyy")
+    
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 12.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color(0xFFF8F9FA))
+            .padding(horizontal = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        IconButton(onClick = onPreviousMonth) {
+            Icon(Icons.Default.KeyboardArrowLeft, contentDescription = "Previous")
+        }
+        Text(
+            text = selectedDate.format(monthFormatter),
+            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.titleMedium
+        )
+        IconButton(onClick = onNextMonth) {
+            Icon(Icons.Default.KeyboardArrowRight, contentDescription = "Next")
+        }
+    }
+}
+
+@Composable
 fun CalendarStrip(
     selectedDate: LocalDate,
     onDateSelected: (LocalDate) -> Unit,
     onPreviousMonth: () -> Unit,
     onNextMonth: () -> Unit
 ) {
-    val monthFormatter = java.time.format.DateTimeFormatter.ofPattern("MMMM yyyy")
+    val monthFormatter = DateTimeFormatter.ofPattern("MMMM yyyy")
     
     Column(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
         Row(
@@ -569,7 +619,6 @@ fun CalendarStrip(
                         fontWeight = FontWeight.Bold,
                         color = if (isSelected) Color.White else MaterialTheme.colorScheme.onBackground
                     )
-                    // Optional: dot for transactions on this day
                 }
             }
         }
@@ -577,40 +626,19 @@ fun CalendarStrip(
 }
 
 @Composable
-fun ExpensesSummaryCards(totalIncome: BigDecimal, totalExpense: BigDecimal, currency: String) {
+fun ExpensesSummaryCards(
+    todayExpense: BigDecimal,
+    yearlyExpense: BigDecimal,
+    currency: String,
+    onTotalExpenseClick: () -> Unit = {}
+) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Purple Salary Card
+        // Orange Total Expense Card (Yearly)
         Card(
-            modifier = Modifier.weight(1f).height(120.dp),
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary)
-        ) {
-            Column(
-                modifier = Modifier.fillMaxSize().padding(16.dp),
-                verticalArrangement = Arrangement.SpaceBetween
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Box(modifier = Modifier.size(32.dp).clip(CircleShape).background(Color.White.copy(alpha=0.2f)), contentAlignment = Alignment.Center) {
-                        Icon(Icons.Default.Wallet, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
-                    }
-                    Icon(Icons.Default.MoreHoriz, null, tint = Color.White)
-                }
-                Column {
-                    Text("Total Salary", color = Color.White.copy(alpha=0.7f), style = MaterialTheme.typography.bodySmall)
-                    Text(CurrencyFormatter.formatCurrency(totalIncome, currency), color = Color.White, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge)
-                }
-            }
-        }
-        
-        // Orange Expense Card
-        Card(
-            modifier = Modifier.weight(1f).height(120.dp),
+            modifier = Modifier.weight(1f).height(130.dp).clickable { onTotalExpenseClick() },
             shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondary)
         ) {
@@ -628,13 +656,66 @@ fun ExpensesSummaryCards(totalIncome: BigDecimal, totalExpense: BigDecimal, curr
                     Icon(Icons.Default.MoreHoriz, null, tint = Color.White)
                 }
                 Column {
-                    Text("Total Expense", color = Color.White.copy(alpha=0.7f), style = MaterialTheme.typography.bodySmall)
-                    Text(CurrencyFormatter.formatCurrency(totalExpense, currency), color = Color.White, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge)
+                    Text("Total Expense (Year)", color = Color.White.copy(alpha=0.7f), style = MaterialTheme.typography.bodySmall)
+                    Text(CurrencyFormatter.formatCurrency(yearlyExpense, currency), color = Color.White, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge)
+                }
+            }
+        }
+        
+        // Today Expense Card
+        Card(
+            modifier = Modifier.weight(1f).height(130.dp),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF2E334D)) // Dark Blue
+        ) {
+            Column(
+                modifier = Modifier.fillMaxSize().padding(16.dp),
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Box(modifier = Modifier.size(32.dp).clip(CircleShape).background(Color.White.copy(alpha=0.2f)), contentAlignment = Alignment.Center) {
+                        Icon(Icons.Default.Today, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+                    }
+                    Icon(Icons.Default.MoreHoriz, null, tint = Color.White)
+                }
+                Column {
+                    Text("Today Expense", color = Color.White.copy(alpha=0.7f), style = MaterialTheme.typography.bodySmall)
+                    Text(CurrencyFormatter.formatCurrency(todayExpense, currency), color = Color.White, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge)
                 }
             }
         }
     }
-}@Composable
+}
+
+@Composable
+fun CategoryFilterRow(
+    categories: List<String>,
+    selectedCategory: String,
+    onCategorySelected: (String) -> Unit
+) {
+    LazyRow(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(categories) { category ->
+            val isSelected = category == selectedCategory
+            FilterChip(
+                onClick = { onCategorySelected(category) },
+                label = { Text(category) },
+                selected = isSelected,
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = MaterialTheme.colorScheme.primary,
+                    selectedLabelColor = Color.White
+                )
+            )
+        }
+    }
+}
+
+@Composable
 fun ExpensesCategoryItem(categoryInfo: CategoryData, currency: String) {
     val budgetText = if (categoryInfo.limit != null) {
         "Budget ${CurrencyFormatter.formatCurrency(categoryInfo.limit, currency)}"

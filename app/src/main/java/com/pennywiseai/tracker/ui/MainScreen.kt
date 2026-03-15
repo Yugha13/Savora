@@ -267,6 +267,7 @@ fun MainScreen(
             composable("analytics") {
                 com.pennywiseai.tracker.ui.screens.analytics.AnalyticsScreen(
                     onNavigateToChat = { navController.navigate("chat") },
+                    onNavigateToDetail = { navController.navigate("total_expense_detail") },
                     onNavigateToTransactions = { category, merchant, period, currency ->
                         val route = buildString {
                             append("transactions")
@@ -293,6 +294,12 @@ fun MainScreen(
                         navController.navigate(route)
                     },
                     onNavigateToHome = { navController.navigate("home") }
+                )
+            }
+
+            composable("total_expense_detail") {
+                com.pennywiseai.tracker.presentation.expenses.ExpenseDetailScreen(
+                    onNavigateBack = { navController.popBackStack() }
                 )
             }
             
